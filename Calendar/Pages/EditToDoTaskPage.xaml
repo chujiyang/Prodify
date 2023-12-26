@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<pages:BasePage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:pages="clr-namespace:Calendar.Pages"
+             xmlns:converters="clr-namespace:Calendar.Converters"
+             xmlns:viewmodel="clr-namespace:Calendar.ViewModels"
+             xmlns:views="clr-namespace:Calendar.Views"
+             x:Class="Calendar.Pages.EditToDoTaskPage"
+             x:TypeArguments="viewmodel:EditToDoTaskViewModel"
+             x:DataType="viewmodel:EditToDoTaskViewModel"
+             Shell.NavBarIsVisible="false">
+
+    <views:FixedScrollView Background="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}">
+        <Grid RowDefinitions="Auto, Auto"
+              ColumnDefinitions="*"
+              HorizontalOptions="FillAndExpand"
+              RowSpacing="12"
+              ColumnSpacing="5">
+
+            <Grid Grid.Row="0"
+                 ColumnDefinitions="33.33*, 33.33*, 33.33*"
+                 ColumnSpacing="8" 
+                 HorizontalOptions="FillAndExpand" Grid.ColumnSpan="3">
+                <Button Text="Cancel" Grid.Column="0"
+                    Command="{Binding CancelCommand}" HorizontalOptions="Center" VerticalOptions="Center" MinimumWidthRequest="80" />
+                <Label Grid.Column="1"
+                    Text="Edit To Do Task"
+                    VerticalOptions="Center" 
+                    HorizontalOptions="Center" Margin="12, 0, 12, 0"/>
+                <Button Text="Save" Grid.Column="2"
+                        Command="{Binding SubmitCommand}" HorizontalOptions="Center" VerticalOptions="Center" MinimumWidthRequest="80" />
+            </Grid>
+
+            <Editor  Grid.Row="1" x:Name="TaskName" MinimumHeightRequest="80" HorizontalOptions="FillAndExpand"
+            Placeholder="Enter task description" Text="{Binding OperatingTask.Description, Mode=TwoWay}"/>
+        </Grid>
+    </views:FixedScrollView>
+</pages:BasePage>

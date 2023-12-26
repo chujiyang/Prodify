@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<pages:BasePage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:pages="clr-namespace:Calendar.Pages"
+             xmlns:views="clr-namespace:Calendar.Views"
+             xmlns:converters="clr-namespace:Calendar.Converters"
+             xmlns:viewmodel="clr-namespace:Calendar.ViewModels"
+             xmlns:picker="clr-namespace:Syncfusion.Maui.Picker;assembly=Syncfusion.Maui.Picker"
+             x:Class="Calendar.Pages.EventDetailPage"
+             x:TypeArguments="viewmodel:EventDetailViewModel"
+             x:DataType="viewmodel:EventDetailViewModel"
+             Shell.NavBarIsVisible="false">
+    
+    <views:FixedScrollView Background="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}">
+        <Grid RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto"
+          ColumnDefinitions="64, 180, *"
+          HorizontalOptions="FillAndExpand"
+          RowSpacing="12"
+          ColumnSpacing="5">
+
+        <Grid Grid.Row="0"
+             ColumnDefinitions="33.33*, 33.33*, 33.33*"
+             ColumnSpacing="8" 
+             HorizontalOptions="FillAndExpand" Grid.ColumnSpan="3">
+            <Button Text="Cancel" Grid.Column="0"
+                Command="{Binding CancelCommand}" HorizontalOptions="Center" VerticalOptions="Center" MinimumWidthRequest="80" />
+            <Label Grid.Column="1"
+                Text="{Binding DialogTitle}"
+                VerticalOptions="Center" 
+                HorizontalOptions="Center" Margin="12, 0, 12, 0"/>
+            <Button Text="Save" Grid.Column="2"
+                    Command="{Binding SubmitCommand}" HorizontalOptions="Center" VerticalOptions="Center" MinimumWidthRequest="80" />
+        </Grid>
+        
+        <Label Grid.Row="1" Grid.Column="0"
+            Text="Title"
+            VerticalOptions="Center" 
+            HorizontalOptions="End" />
+        
+        <Entry  Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"  x:Name="TaskName"
+            Placeholder="Enter task title" Text="{Binding OperatingEvent.EventName, Mode=TwoWay}"/>
+        
+        <Label Grid.Row="2" Grid.Column="0"
+            Text="Date"
+            HorizontalOptions="End"
+            VerticalOptions="Center"/>
+
+        <Grid Grid.Row="2" Grid.Column="1">
+            <picker:SfDatePicker x:Name="DatePicker"
+                            Mode="RelativeDialog"
+                            MinimumDate="{Binding MinDisplayDateTime}"
+                            MaximumDate="{Binding MaxDisplayDateTime}"
+                            RelativePosition="AlignBottom"
+                            Background="{AppThemeBinding Light={StaticResource LightPickerBackground}, Dark={StaticResource DarkPickerBackground}}"
+                            SelectedDate="{Binding OperatingEvent.Date, Mode=TwoWay}"                            
+                            IsOpen="{Binding IsDateOpen, Mode=TwoWay}">
+                    <picker:SfDatePicker.TextStyle>
+                        <picker:PickerTextStyle FontSize="14" TextColor="{AppThemeBinding Light={StaticResource LightPickerText}, Dark={StaticResource DarkPickerText}}"/>
+                    </picker:SfDatePicker.TextStyle>
+                    <picker:SfDatePicker.SelectedTextStyle >
+                        <picker:PickerTextStyle FontSize="15" TextColor="{AppThemeBinding Light={StaticResource LightPickerSelectionText}, Dark={StaticResource DarkPickerSelectionText}}"/>
+                    </picker:SfDatePicker.SelectedTextStyle>
+                    <picker:SfDatePicker.SelectionView>
+                        <picker:PickerSelectionView CornerRadius="10" Padding="10, 5, 10, 5"                                                 
+                            Stroke="{AppThemeBinding Light={StaticResource LightPickerSelectionStroke}, Dark={StaticResource DarkPickerSelectionStroke}}"
+                            Background="{AppThemeBinding Light={StaticResource LightPickerSelectionBackground}, Dark={StaticResource DarkPickerSelectionBackground}}">
+                        </picker:PickerSelectionView>
+                    </picker:SfDatePicker.SelectionView>
+                    <picker:SfDatePicker.ColumnHeaderView >
+                        <picker:DatePickerColumnHeaderView Background="{AppThemeBinding Light={StaticResource LightPickerBackground}, Dark={StaticResource DarkPickerBackground}}">
+                           <picker:DatePickerColumnHeaderView.TextStyle >
+                                <picker:PickerTextStyle FontSize="15" TextColor="{AppThemeBinding Light={StaticResource LightPickerText}, Dark={StaticResource DarkPickerText}}" />
+                            </picker:DatePickerColumnHeaderView.TextStyle>
+                        </picker:DatePickerColumnHeaderView>
+                    </picker:SfDatePicker.ColumnHeaderView>
+                </picker:SfDatePicker>
+            
+            <Button  
+                VerticalOptions="Center" 
+                Text="{Binding OperatingEvent.Date, StringFormat='{0:yyyy/MM/dd}'}"
+                Command="{Binding EditDateCommand}" />
+        </Grid>
+
+        <Label Grid.Row="3" Grid.Column="0"
+            Text="From"
+            HorizontalOptions="End"
+            VerticalOptions="Center"/>
+
+        <Grid Grid.Row="3" Grid.Column="1">
+                <picker:SfTimePicker x:Name="FromPicker"
+                             Mode="RelativeDialog"
+                             MinuteInterval="15"
+                             RelativePosition="AlignBottom"
+                             Format="hh_mm_tt"
+                             SelectedTime="{Binding OperatingEvent.From, Mode=TwoWay}"
+                             Background="{AppThemeBinding Light={StaticResource LightPickerBackground}, Dark={StaticResource DarkPickerBackground}}"
+                             IsOpen="{Binding IsFromOpen, Mode=TwoWay}" >
+
+                    <picker:SfTimePicker.TextStyle>
+                        <picker:PickerTextStyle FontSize="14" TextColor="{AppThemeBinding Light={StaticResource LightPickerText}, Dark={StaticResource DarkPickerText}}"/>
+                    </picker:SfTimePicker.TextStyle>
+                    <picker:SfTimePicker.SelectedTextStyle >
+                        <picker:PickerTextStyle FontSize="15" TextColor="{AppThemeBinding Light={StaticResource LightPickerSelectionText}, Dark={StaticResource DarkPickerSelectionText}}"/>
+                    </picker:SfTimePicker.SelectedTextStyle>
+                    <picker:SfTimePicker.SelectionView>
+                        <picker:PickerSelectionView CornerRadius="10" Padding="10, 5, 10, 5"                                                 
+                            Stroke="{AppThemeBinding Light={StaticResource LightPickerSelectionStroke}, Dark={StaticResource DarkPickerSelectionStroke}}"
+                            Background="{AppThemeBinding Light={StaticResource LightPickerSelectionBackground}, Dark={StaticResource DarkPickerSelectionBackground}}">
+                        </picker:PickerSelectionView>
+                    </picker:SfTimePicker.SelectionView>
+                    <picker:SfTimePicker.ColumnHeaderView >
+                        <picker:TimePickerColumnHeaderView Background="{AppThemeBinding Light={StaticResource LightPickerBackground}, Dark={StaticResource DarkPickerBackground}}">
+                            <picker:TimePickerColumnHeaderView.TextStyle >
+                                <picker:PickerTextStyle FontSize="15" TextColor="{AppThemeBinding Light={StaticResource LightPickerText}, Dark={StaticResource DarkPickerText}}" />
+                            </picker:TimePickerColumnHeaderView.TextStyle>
+                        </picker:TimePickerColumnHeaderView>
+                    </picker:SfTimePicker.ColumnHeaderView>
+
+                </picker:SfTimePicker>
+            <Button
+                 VerticalOptions="Center"
+                 Text="{Binding OperatingEvent.From, Converter={converters:TimespanToStringConverter}}"
+                 Command="{Binding EditFromCommand}"/>
+        </Grid>
+        
+        <Label  Grid.Row="4" Grid.Column="0"
+                Text="To"
+                HorizontalOptions="End"
+                VerticalOptions="Center" />
+
+        
+        <Grid Grid.Row="4" Grid.Column="1">
+            <picker:SfTimePicker x:Name="ToPicker"
+                             Mode="RelativeDialog"
+                             MinuteInterval="15"
+                             RelativePosition="AlignBottom"
+                             Format="hh_mm_tt"
+                             SelectedTime="{Binding OperatingEvent.To, Mode=TwoWay}"
+                             Background="{AppThemeBinding Light={StaticResource LightPickerBackground}, Dark={StaticResource DarkPickerBackground}}"
+                             IsOpen="{Binding IsToOpen, Mode=TwoWay}">
+
+                    <picker:SfTimePicker.TextStyle>
+                        <picker:PickerTextStyle FontSize="14" TextColor="{AppThemeBinding Light={StaticResource LightPickerText}, Dark={StaticResource DarkPickerText}}"/>
+                    </picker:SfTimePicker.TextStyle>
+                    <picker:SfTimePicker.SelectedTextStyle >
+                        <picker:PickerTextStyle FontSize="15" TextColor="{AppThemeBinding Light={StaticResource LightPickerSelectionText}, Dark={StaticResource DarkPickerSelectionText}}"/>
+                    </picker:SfTimePicker.SelectedTextStyle>
+                    <picker:SfTimePicker.SelectionView>
+                        <picker:PickerSelectionView CornerRadius="10" Padding="10, 5, 10, 5"                                                 
+                            Stroke="{AppThemeBinding Light={StaticResource LightPickerSelectionStroke}, Dark={StaticResource DarkPickerSelectionStroke}}"
+                            Background="{AppThemeBinding Light={StaticResource LightPickerSelectionBackground}, Dark={StaticResource DarkPickerSelectionBackground}}">
+                        </picker:PickerSelectionView>
+                    </picker:SfTimePicker.SelectionView>
+                    <picker:SfTimePicker.ColumnHeaderView >
+                        <picker:TimePickerColumnHeaderView Background="{AppThemeBinding Light={StaticResource LightPickerBackground}, Dark={StaticResource DarkPickerBackground}}">
+                            <picker:TimePickerColumnHeaderView.TextStyle >
+                                <picker:PickerTextStyle FontSize="15" TextColor="{AppThemeBinding Light={StaticResource LightPickerText}, Dark={StaticResource DarkPickerText}}" />
+                            </picker:TimePickerColumnHeaderView.TextStyle>
+                        </picker:TimePickerColumnHeaderView>
+                    </picker:SfTimePicker.ColumnHeaderView>
+
+                </picker:SfTimePicker>
+
+            <Button
+                VerticalOptions="Center"
+                Text="{Binding OperatingEvent.To, Converter={converters:TimespanToStringConverter}}"
+                Command="{Binding EditToCommand}"/>
+        </Grid>
+            
+        <Label Grid.Row="5" Grid.Column="0"
+            Text="Note"
+            VerticalOptions="Start" 
+            HorizontalOptions="End" />
+        <Editor Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" x:Name="Note" Text="{Binding OperatingEvent.Notes, Mode=TwoWay}" 
+                    Placeholder="Enter note" HeightRequest="300" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand"/>
+
+    </Grid>
+    </views:FixedScrollView>
+
+</pages:BasePage>

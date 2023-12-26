@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:mct="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"    
+             xmlns:ListView="clr-namespace:Syncfusion.Maui.ListView;assembly=Syncfusion.Maui.ListView"             
+             xmlns:viewmodels="clr-namespace:Calendar.ViewModels"
+             xmlns:views="clr-namespace:Calendar.Views"
+             xmlns:behaviors="clr-namespace:Calendar.Behaviors"
+             xmlns:converters="clr-namespace:Calendar.Converters"
+             x:Class="Calendar.Views.EventListView">
+    <ContentView.BindingContext>
+        <viewmodels:EventListViewModel/>
+    </ContentView.BindingContext>
+    <ContentView.Resources>
+        <converters:BoolToColorConverter x:Key="BoolToColorBrushConverter" 
+                                   TrueColor="{AppThemeBinding Light={StaticResource LightFinishedColor}, Dark={StaticResource DarkFinishedColor}}" 
+                                   FalseColor="{AppThemeBinding Light={StaticResource LightPendingColor}, Dark={StaticResource DarkPendingColor}}"/>
+        <converters:IsTodayConverter x:Key="IsTodayConverter"
+                                   TrueColor="{AppThemeBinding Light={StaticResource LightTodayColor}, Dark={StaticResource DarkTodayColor}}"
+                                   FalseColor="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}" />
+    </ContentView.Resources>
+    <Grid HorizontalOptions="Fill" VerticalOptions="FillAndExpand"
+          Background="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}">
+        <ListView:SfListView x:Name="listView"
+                        ItemSize="56" ScrollBarVisibility="Always"
+                        SelectionMode="Single"
+                        IsStickyGroupHeader="True"
+                        ItemsSource="{Binding Events}"
+                        AllowSwiping="True"
+                        AllowGroupExpandCollapse="True" 
+                        GroupHeaderSize="64"
+                        HorizontalOptions="Fill" VerticalOptions="FillAndExpand"
+                        AutoFitMode="DynamicHeight"
+                        Background="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}"
+                        TapCommand="{Binding ItemTappedCommand}">
+            <ListView:SfListView.GroupHeaderTemplate>
+                <DataTemplate>
+                    <ViewCell>
+                        <ViewCell.View>
+                            <Grid BackgroundColor="{Binding Key, Converter={StaticResource IsTodayConverter}}" VerticalOptions="Center" >
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Label Text="{Binding Key}" 
+                                    FontSize="20" 
+                                    FontFamily="Roboto-Medium"
+                                    VerticalOptions="Center" 
+                                    HorizontalOptions="Start" 
+                                    WidthRequest="200"
+                                    Margin="8,8,8,8" />
+                            </Grid>
+                        </ViewCell.View>
+                    </ViewCell>
+                </DataTemplate>
+            </ListView:SfListView.GroupHeaderTemplate>
+            <ListView:SfListView.Behaviors>
+                <behaviors:EventListViewGroupingBehavior/>
+            </ListView:SfListView.Behaviors>
+            <ListView:SfListView.ItemTemplate>
+                <DataTemplate>
+                    <Grid Margin="4,6,4,6">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"> </RowDefinition>
+                            <RowDefinition Height="{Binding IsNotesVisible, Converter={converters:BoolToGridRowHeightConverter}}"></RowDefinition>
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="32"/>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Grid.Column="1" Text="{Binding From, Converter={converters:TimespanToStringConverter}}" 
+                                   FontSize="{OnPlatform Default=16,WinUI=14}" FontFamily="Roboto-Regular" CharacterSpacing="0.5"
+                                   TextColor="{Binding IsFinished, Converter={StaticResource BoolToColorBrushConverter}}"
+                                   VerticalOptions="Center"/>
+                            <Label Grid.Column="2" Text="{Binding To, Converter={converters:TimespanToStringConverter}}"
+                                   FontSize="{OnPlatform Default=16,WinUI=14}" FontFamily="Roboto-Regular"
+                                   CharacterSpacing="0.5"
+                                   TextColor="{Binding IsFinished, Converter={StaticResource BoolToColorBrushConverter}}"
+                                   VerticalOptions="Center"/>
+                            <Label Grid.Column="3" Text="{Binding EventName}"
+                                   FontSize="{OnPlatform Default=16,WinUI=14}" FontFamily="Roboto-Regular"
+                                   CharacterSpacing="0.5"
+                                   TextColor="{Binding IsFinished, Converter={StaticResource BoolToColorBrushConverter}}"
+                                   VerticalOptions="Center"/>
+                        </Grid>
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="32"/>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Editor IsReadOnly="True" Grid.Column="3" Text="{Binding Notes}" Margin="0, 12, 12, 12"
+                                   FontSize="{OnPlatform Default=16,WinUI=14}" FontFamily="Roboto-Regular" CharacterSpacing="0.5"
+                                    Background="Transparent"
+                                    IsVisible="{Binding IsNotesVisible}"
+                                    TextColor="{AppThemeBinding Light={StaticResource LightLabelText}, Dark={StaticResource DarkLabelText}}" VerticalOptions="Center"/>
+                        </Grid>
+                    </Grid>
+                </DataTemplate>
+            </ListView:SfListView.ItemTemplate>
+            <ListView:SfListView.StartSwipeTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="32" />
+                        </Grid.ColumnDefinitions>
+                        <Grid BackgroundColor="Transparent" HorizontalOptions="Fill" VerticalOptions="Fill" Grid.Column="0">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer  Command="{Binding Path=BindingContext.CheckEventCommand, Source={x:Reference listView}}" 
+                                          CommandParameter="{Binding .}"/>
+                            </Grid.GestureRecognizers>
+                            <Image Source="check.png" HeightRequest="24" 
+                                    WidthRequest="24" IsVisible="{Binding IsFinished}"
+                                    VerticalOptions="Center" HorizontalOptions="Center"/>
+                            <Image Source="uncheck.png" HeightRequest="24" IsVisible="{Binding IsFinished, Converter={converters:InverseBoolConverter}}"
+                                           WidthRequest="24"
+                                           VerticalOptions="Center" HorizontalOptions="Center"/>
+                        </Grid>
+                    </Grid>
+                </DataTemplate>
+            </ListView:SfListView.StartSwipeTemplate>
+            <ListView:SfListView.EndSwipeTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="32" />
+                            <ColumnDefinition Width="32" />
+                            <ColumnDefinition Width="32" />
+                        </Grid.ColumnDefinitions>
+                        <Grid BackgroundColor="Transparent" HorizontalOptions="Fill" VerticalOptions="Fill" Grid.Column="0">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer  Command="{Binding Path=BindingContext.LaunchTimerCommand, Source={x:Reference listView}}" 
+                                      CommandParameter="{Binding .}"/>
+                            </Grid.GestureRecognizers>
+                            <Image Source="clock.png" HeightRequest="24" 
+                                WidthRequest="24"
+                                VerticalOptions="Center" HorizontalOptions="Center"/>
+                        </Grid>
+
+                        <Grid BackgroundColor="Transparent" HorizontalOptions="Fill" VerticalOptions="Fill" Grid.Column="1">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer  Command="{Binding Path=BindingContext.EditEventCommand, Source={x:Reference listView}}" 
+                                                  CommandParameter="{Binding .}"/>
+                            </Grid.GestureRecognizers>
+                            <Image Source="edit.png" HeightRequest="24" 
+                               WidthRequest="24"
+                               VerticalOptions="Center" HorizontalOptions="Center"/>
+                        </Grid>
+
+                        <Grid BackgroundColor="Transparent" HorizontalOptions="Fill" VerticalOptions="Fill" Grid.Column="2">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer  Command="{Binding Path=BindingContext.DeleteEventCommand, Source={x:Reference listView}}" 
+                                                  CommandParameter="{Binding .}"/>
+                            </Grid.GestureRecognizers>
+                            <Image Source="delete.png" HeightRequest="24" 
+                               WidthRequest="24"
+                               VerticalOptions="Center" HorizontalOptions="Center"/>
+                        </Grid>
+                    </Grid>
+                </DataTemplate>
+            </ListView:SfListView.EndSwipeTemplate>
+        </ListView:SfListView>
+
+        <HorizontalStackLayout
+            HorizontalOptions="EndAndExpand"
+            VerticalOptions="StartAndExpand">
+
+            <Button
+                VerticalOptions="Center"
+                Margin="4, 3, 4, 0"
+                Padding="0"
+                HeightRequest="20"                
+                WidthRequest="64"
+                MinimumHeightRequest="32"
+                BackgroundColor="{AppThemeBinding Light={StaticResource LightTodayColor}, Dark={StaticResource DarkTodayColor}}"
+                Text="Today"
+                Command="{Binding TodayEventCommand}">
+            </Button>
+
+            <Button
+                BorderColor="Transparent"
+                BackgroundColor="Transparent"
+                VerticalOptions="Center"
+                Margin="0, 3, 8, 0"
+                Padding="0"
+                WidthRequest="48"
+                MinimumHeightRequest="32"
+                CornerRadius="0"
+                FontSize="20"
+                ImageSource="add.png"
+                Command="{Binding NewEventCommand}">
+            </Button>
+        </HorizontalStackLayout>
+        
+    </Grid>    
+</ContentView>

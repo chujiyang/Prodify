@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:views="clr-namespace:Calendar.Views"
+             xmlns:ListView="clr-namespace:Syncfusion.Maui.ListView;assembly=Syncfusion.Maui.ListView"
+             xmlns:viewmodels="clr-namespace:Calendar.ViewModels"
+             xmlns:converters="clr-namespace:Calendar.Converters"
+             x:Class="Calendar.Views.ToDoTaskListView">
+
+    <ContentView.BindingContext>
+        <viewmodels:ToDoTaskListViewModel/>
+    </ContentView.BindingContext>
+
+    <views:FixedScrollView Background="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}">
+        <Grid RowDefinitions="*,Auto" HorizontalOptions="Fill" VerticalOptions="FillAndExpand">
+            <ListView:SfListView x:Name="listView" Grid.Row="0"
+                            ItemSize="56" ScrollBarVisibility="Always"
+                            SelectionMode="Single"
+                            IsStickyGroupHeader="True"
+                            ItemsSource="{Binding ToDoTasks}"
+                            AllowSwiping="True"
+                            AllowGroupExpandCollapse="True" 
+                            GroupHeaderSize="64"
+                            HorizontalOptions="Fill" VerticalOptions="FillAndExpand"
+                            AutoFitMode="DynamicHeight"
+                            ItemSpacing="5,5,5,5"
+                            DragStartMode="OnHold"
+                            ItemDragging="listView_ItemDragging">
+                <ListView:SfListView.DragDropController>
+                    <ListView:DragDropController
+                        UpdateSource="True">
+                    </ListView:DragDropController>
+                </ListView:SfListView.DragDropController>
+                <ListView:SfListView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame x:Name="frame" CornerRadius="10" Margin="0,0, 0, 0"
+                               BackgroundColor="{AppThemeBinding Light={StaticResource LightTaskBackground}, Dark={StaticResource DarkTaskBackground}}" BorderColor="Transparent" HasShadow="False"
+                               MinimumWidthRequest="200" >
+                            <Grid Margin="0,0,0,0">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"></RowDefinition>
+                                </Grid.RowDefinitions>
+                                <Grid Grid.Row="0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="32"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid BackgroundColor="Transparent" HorizontalOptions="Fill" VerticalOptions="Fill" Grid.Column="0" Margin="0" Padding="0">
+                                        <Grid.GestureRecognizers>
+                                            <TapGestureRecognizer  Command="{Binding Path=BindingContext.CheckCommand, Source={x:Reference listView}}" 
+                                              CommandParameter="{Binding .}"/>
+                                        </Grid.GestureRecognizers>
+                                        <Image Source="check.png" Grid.Column="0" HeightRequest="32" IsVisible="{Binding IsFinished}"
+                                           WidthRequest="32"
+                                           VerticalOptions="Center" HorizontalOptions="Center"/>
+                                        <Image Source="uncheck.png" Grid.Column="0" HeightRequest="32" IsVisible="{Binding IsFinished, Converter={converters:InverseBoolConverter}}"
+                                           WidthRequest="32"
+                                           VerticalOptions="Center" HorizontalOptions="Center"/>
+                                    </Grid>
+                                    <Label Grid.Column="1" Text="{Binding Description}"
+                                        FontSize="{OnPlatform Default=16,WinUI=14}" FontFamily="Roboto-Regular" Background="Transparent"
+                                        CharacterSpacing="0.5"
+                                        Margin="0"
+                                        VerticalOptions="CenterAndExpand"/>
+                                </Grid>
+                            </Grid>
+                        </Frame>
+                    </DataTemplate>
+                </ListView:SfListView.ItemTemplate>
+                <ListView:SfListView.EndSwipeTemplate>
+                    <DataTemplate>
+                        <Grid ColumnSpacing="6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="24" />
+                                <ColumnDefinition Width="24" />
+                                <ColumnDefinition Width="24" />
+                            </Grid.ColumnDefinitions>
+
+                            <Grid BackgroundColor="Transparent" HorizontalOptions="Fill" VerticalOptions="Fill" Grid.Column="0">
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer  Command="{Binding Path=BindingContext.LaunchTimerCommand, Source={x:Reference listView}}" 
+                                      CommandParameter="{Binding .}"/>
+                                </Grid.GestureRecognizers>
+                                <Image Source="clock.png" HeightRequest="24" 
+                                WidthRequest="24"
+                                VerticalOptions="Center" HorizontalOptions="Center"/>
+                            </Grid>
+
+                            <Grid BackgroundColor="Transparent" HorizontalOptions="Fill" VerticalOptions="Fill" Grid.Column="1">
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer  Command="{Binding Path=BindingContext.EditToDoTaskCommand, Source={x:Reference listView}}" 
+                                                        CommandParameter="{Binding .}"/>
+                                </Grid.GestureRecognizers>
+                                <Image Source="edit.png" HeightRequest="24" 
+                                            WidthRequest="24"
+                                            VerticalOptions="Center" HorizontalOptions="Center"/>
+                            </Grid>
+
+                            <Grid BackgroundColor="Transparent" HorizontalOptions="Fill" VerticalOptions="Fill" Grid.Column="2">
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer  Command="{Binding Path=BindingContext.DeleteToDoTaskCommand, Source={x:Reference listView}}" 
+                                                        CommandParameter="{Binding .}"/>
+                                </Grid.GestureRecognizers>
+                                <Image Source="delete.png" HeightRequest="24" 
+                                    WidthRequest="24"
+                                    VerticalOptions="Center" HorizontalOptions="Center"/>
+                            </Grid>
+                        </Grid>
+                    </DataTemplate>
+                </ListView:SfListView.EndSwipeTemplate>
+            </ListView:SfListView>
+
+            <Grid Grid.Row="1" ColumnDefinitions="*,32" Margin="8, 12, 16, 8" ColumnSpacing="0">
+                <ScrollView HeightRequest="120" HorizontalOptions="FillAndExpand" Margin="0,0,8, 0" Grid.Column="0">
+                    <Editor x:Name="editor"
+                        Placeholder="Enter your to do task here."                
+                        Text="{Binding NewTaskDescription}" AutoSize="TextChanges" />
+                </ScrollView>
+
+                <ImageButton Grid.Column="1"
+                    VerticalOptions="Start"
+                    BorderColor="Transparent"
+                    BackgroundColor="Transparent"
+                    Margin="0"
+                    Padding="0"
+                    HeightRequest="24"
+                    WidthRequest="24"
+                    CornerRadius="0"
+                    Source="add.png"
+                    BorderWidth="0"
+                    Command="{Binding AddCommand}">
+                </ImageButton>
+            </Grid>
+        </Grid>
+    </views:FixedScrollView>
+
+</ContentView>

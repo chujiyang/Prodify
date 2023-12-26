@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<pages:BasePage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:gauge="clr-namespace:Syncfusion.Maui.Gauges;assembly=Syncfusion.Maui.Gauges"
+             xmlns:picker="clr-namespace:Syncfusion.Maui.Picker;assembly=Syncfusion.Maui.Picker"
+             xmlns:pages="clr-namespace:Calendar.Pages"
+             xmlns:converters="clr-namespace:Calendar.Converters"
+             xmlns:viewmodel="clr-namespace:Calendar.ViewModels"
+             x:TypeArguments="viewmodel:TaskTimerViewModel"
+             x:DataType="viewmodel:TaskTimerViewModel"
+             x:Class="Calendar.Pages.TaskTimerPage"             
+             Shell.NavBarIsVisible="false">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0"
+                 ColumnDefinitions="33.33*, 33.33*, 33.33*"
+                 ColumnSpacing="8" 
+                 HorizontalOptions="FillAndExpand" Grid.ColumnSpan="3">
+            <Button Text="Cancel" Grid.Column="0"
+                    Command="{Binding CancelCommand}" HorizontalOptions="Center" VerticalOptions="Center" MinimumWidthRequest="80" />
+            <Label Grid.Column="1"
+                    Text="Timing"
+                    VerticalOptions="Center" 
+                    HorizontalOptions="Center" Margin="12, 0, 12, 0"/>
+            <Button Text="Done" Grid.Column="2"
+                        Command="{Binding CompleteCommand}" HorizontalOptions="Center" VerticalOptions="Center" MinimumWidthRequest="80" />
+        </Grid>
+
+        <Grid Grid.Row="1">
+            <Frame x:Name="frame" CornerRadius="10" Margin="8,18, 8, 8"
+                               BackgroundColor="{AppThemeBinding Light={StaticResource LightTaskBackground}, Dark={StaticResource DarkTaskBackground}}" BorderColor="Transparent" HasShadow="False"
+                               MinimumWidthRequest="200" >
+
+                <Label Text="{Binding TaskDescription}"
+                    FontSize="{OnPlatform Default=16,WinUI=14}" FontFamily="Roboto-Regular" Background="Transparent"
+                    CharacterSpacing="0.5"
+                    Margin="0"
+                    VerticalOptions="CenterAndExpand"/>
+            </Frame>
+        </Grid>
+        <Grid Grid.Row="2">
+            <gauge:SfRadialGauge x:Name="timerGauge" MinimumHeightRequest="300" MinimumWidthRequest="300">
+                <gauge:SfRadialGauge.Axes>
+                    <gauge:RadialAxis StartAngle="270"
+                                EndAngle="270"
+                                Minimum="0"
+                                Maximum="{Binding TotalSeconds}"
+                                ShowLabels="False"
+                                ShowTicks="False">
+                        <gauge:RadialAxis.AxisLineStyle>
+                            <gauge:RadialLineStyle Fill="{AppThemeBinding Light={StaticResource LightGaugeAxisLineFill}, Dark={StaticResource DarkGaugeAxisLineFill}}" />
+                        </gauge:RadialAxis.AxisLineStyle>
+                        <gauge:RadialAxis.Pointers>
+                            <gauge:RangePointer x:Name="range"
+                                        Value="{Binding Seconds}"
+                                        EnableAnimation="True">
+                                <gauge:RangePointer.GradientStops>
+                                    <gauge:GaugeGradientStop Value="{Binding TotalSeconds}"
+                                                 Color="#FF99BB" />
+                                    <gauge:GaugeGradientStop Value="0"
+                                                 Color="#99DDFF" />
+                                </gauge:RangePointer.GradientStops>
+                            </gauge:RangePointer>
+                            <gauge:ShapePointer x:Name="pointer"
+                                        Value="{Binding Seconds}"
+                                        EnableAnimation="True"
+                                        ShapeHeight="30"
+                                        ShapeWidth="30"
+                                        Stroke="{AppThemeBinding Light={StaticResource LightGaugeShapeStroke}, Dark={StaticResource DarkGaugeShapeStroke}}"
+                                        BorderWidth="3"
+                                        ShapeType="Circle"
+                                        Fill="White" />
+                        </gauge:RadialAxis.Pointers>
+                    </gauge:RadialAxis>
+                </gauge:SfRadialGauge.Axes>
+            </gauge:SfRadialGauge>
+
+            <Label x:Name="timer"
+                   VerticalOptions="Center"
+                   HorizontalOptions="CenterAndExpand"
+                   MinimumHeightRequest="80"
+                   Text="{Binding RemainingTime, StringFormat='{hh:mm:ss}'}"
+                   FontSize="48"
+                   Background="Transparent"
+                   Margin="0"
+                   Padding="0"
+                   TextColor="{AppThemeBinding Light={StaticResource LightLabelText}, Dark={StaticResource DarkLabelText}}" />
+        </Grid>
+
+        <Grid Grid.Row="3">
+            <HorizontalStackLayout HorizontalOptions="Center">
+                <Picker x:Name="HourPicker" HeightRequest="30" WidthRequest="48"  HorizontalOptions="Center"
+                                            ItemsSource="{Binding HoursList}" SelectedItem="{Binding SelectedHour, Mode=TwoWay}">
+                </Picker>
+                <Label Text="Hour" VerticalOptions="Center" HorizontalOptions="Center" Margin="8,0, 4, 0" Background="Transparent"></Label>
+                <Picker x:Name="MinutePicker" HeightRequest="30" WidthRequest="48" HorizontalOptions="Center"
+                                            ItemsSource="{Binding MinutesList}" SelectedItem="{Binding SelectedMinute, Mode=TwoWay}">
+                </Picker>
+                <Label Text="Minute" VerticalOptions="Center" HorizontalOptions="Center" Margin="4,0, 4, 0" Background="Transparent"></Label>
+                <Picker x:Name="SecondsPicker" HeightRequest="30" WidthRequest="48" HorizontalOptions="Center"
+                                                ItemsSource="{Binding SecondsList}" SelectedItem="{Binding SelectedSecond, Mode=TwoWay}" >
+                </Picker>
+                <Label Text="Second" VerticalOptions="Center" HorizontalOptions="Center" Margin="4,0, 8, 0" Background="Transparent"></Label>
+            </HorizontalStackLayout>
+        </Grid>
+
+        <Grid Grid.Row="4">
+            <HorizontalStackLayout HorizontalOptions="Center">
+                <Button Text="Start" Command="{Binding StartCommand}" IsVisible="{Binding StartVisible}" HorizontalOptions="Center" MinimumWidthRequest="80" Margin ="18" Padding="5"/>
+                <Button Text="Stop" Command="{Binding StopCommand}" IsVisible="{Binding StopVisible}" HorizontalOptions="Center" MinimumWidthRequest="80" Margin ="18" Padding="5"/>
+                <Button Text="Play" Command="{Binding PlayCommand}" IsVisible ="{Binding PlayVisible}" HorizontalOptions="Center" MinimumWidthRequest="80" Margin ="18" Padding="5"/>
+                <Button Text="Pause" Command="{Binding PauseCommand}" IsVisible="{Binding PauseVisible}" HorizontalOptions="Center" MinimumWidthRequest="80" Margin ="18" Padding="5"/>
+            </HorizontalStackLayout>
+        </Grid>
+    </Grid>
+</pages:BasePage>

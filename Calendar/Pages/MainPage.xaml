@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<pages:BasePage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:pages="clr-namespace:Calendar.Pages"
+             xmlns:viewmodels="clr-namespace:Calendar.ViewModels"
+             xmlns:tabView="clr-namespace:Syncfusion.Maui.TabView;assembly=Syncfusion.Maui.TabView"
+             xmlns:views="clr-namespace:Calendar.Views"
+             x:TypeArguments="viewmodels:MainViewModel"
+             Shell.NavBarIsVisible="false"
+             x:Class="Calendar.Pages.MainPage">
+
+    <Grid Background="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}">
+        <tabView:SfTabView x:Name="tabView" 
+                               TabBarHeight="75"
+                               
+                               TabBarBackground="{AppThemeBinding Light={StaticResource LightTabBarBackgroundColor}, Dark={StaticResource DarkTabBarBackgroundColor}}"
+                               TabWidthMode="Default"
+                               TabBarPlacement="Bottom"
+                               BackgroundColor="{AppThemeBinding Light={StaticResource LightTabViewBackgroundColor}, Dark={StaticResource DarkTabViewBackgroundColor}}"
+                               IndicatorBackground="{AppThemeBinding Light={StaticResource LightTabViewIndicatorBackgroundColor}, Dark={StaticResource DarkTabViewIndicatorBackgroundColor}}"
+                               IndicatorPlacement="Top" >
+            <tabView:SfTabView.Items>
+                <tabView:SfTabItem Header="Agenda" ImageSource="agenda.png">
+                    <tabView:SfTabItem.Content>
+
+                        <Grid RowDefinitions="*">
+                            <Grid Grid.Row="0" HorizontalOptions="Fill" VerticalOptions="FillAndExpand">
+                                <views:EventListView x:Name="MyEventListView"></views:EventListView>
+                            </Grid>
+                        </Grid>
+                    </tabView:SfTabItem.Content>
+                </tabView:SfTabItem >
+                <tabView:SfTabItem Header="To Do" ImageSource="todo.png" >
+                    <tabView:SfTabItem.Content>
+
+                        <Grid RowDefinitions="*">
+                            <Grid Grid.Row="0">
+                                <views:ToDoTaskListView x:Name="MyTodoListView"></views:ToDoTaskListView>
+                            </Grid>
+                        </Grid>
+                    </tabView:SfTabItem.Content>
+                </tabView:SfTabItem >
+            </tabView:SfTabView.Items>
+        </tabView:SfTabView>
+    </Grid>
+</pages:BasePage>
