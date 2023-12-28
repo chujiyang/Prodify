@@ -33,20 +33,19 @@
                         Command="{Binding CompleteCommand}" HorizontalOptions="Center" VerticalOptions="Center" MinimumWidthRequest="80" />
         </Grid>
 
-        <Grid Grid.Row="1">
-            <Frame x:Name="frame" CornerRadius="10" Margin="8,18, 8, 8"
-                               BackgroundColor="{AppThemeBinding Light={StaticResource LightTaskBackground}, Dark={StaticResource DarkTaskBackground}}" BorderColor="Transparent" HasShadow="False"
-                               MinimumWidthRequest="200" >
-
-                <Label Text="{Binding TaskDescription}"
+        <Grid Grid.Row="1" BackgroundColor="{AppThemeBinding Light={StaticResource LightTaskBackground}, Dark={StaticResource DarkTaskBackground}}"
+              Margin="12,12,12,12"
+              Padding="12,12,12,12">
+            <ScrollView VerticalOptions="FillAndExpand">
+                <Label Text="{Binding TaskDescription}" MaximumHeightRequest="180"                    
                     FontSize="{OnPlatform Default=16,WinUI=14}" FontFamily="Roboto-Regular" Background="Transparent"
                     CharacterSpacing="0.5"
-                    Margin="0"
-                    VerticalOptions="CenterAndExpand"/>
-            </Frame>
+                    Margin="0"                    
+                    HorizontalOptions="FillAndExpand"/>
+            </ScrollView>
         </Grid>
         <Grid Grid.Row="2">
-            <gauge:SfRadialGauge x:Name="timerGauge" MinimumHeightRequest="300" MinimumWidthRequest="300">
+            <gauge:SfRadialGauge Grid.Row="0" x:Name="timerGauge" MinimumHeightRequest="300" MinimumWidthRequest="300">
                 <gauge:SfRadialGauge.Axes>
                     <gauge:RadialAxis StartAngle="270"
                                 EndAngle="270"
@@ -82,7 +81,7 @@
                 </gauge:SfRadialGauge.Axes>
             </gauge:SfRadialGauge>
 
-            <Label x:Name="timer"
+            <Label x:Name="timer" Grid.Row="0"
                    VerticalOptions="Center"
                    HorizontalOptions="CenterAndExpand"
                    MinimumHeightRequest="80"

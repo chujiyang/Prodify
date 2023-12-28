@@ -13,8 +13,8 @@
     <Color x:Key="DarkFinishedColor">#383838</Color>
     <Color x:Key="DarkPendingColor">#F1F1F1</Color>
 
-    <Color x:Key="LightTodayColor">#E6EFF4</Color>
-    <Color x:Key="DarkTodayColor">#09110C</Color>
+    <Color x:Key="LightTodayColor">#A7CBF6</Color>
+    <Color x:Key="DarkTodayColor">#ACACAC</Color>
     
     <Color x:Key="LightBackground">#FAF9F8</Color>
     <Color x:Key="DarkBackground">Black</Color>
@@ -45,6 +45,9 @@
 
     <Color x:Key="LightTaskBackground">#E6EFF4</Color>
     <Color x:Key="DarkTaskBackground">#292929</Color>
+
+    <Color x:Key="LightNoteBackground">#E1E1E1</Color>
+    <Color x:Key="DarkNoteBackground">#5C6165</Color>
 
     <Color x:Key="LightTabItemTextColor">#ACACAC</Color>
     <Color x:Key="DarkTabItemTextColor">#909090</Color>

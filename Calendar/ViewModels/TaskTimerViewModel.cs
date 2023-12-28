@@ -105,6 +105,11 @@ public partial class TaskTimerViewModel : BaseViewModel
         dispatcherTimer.Tick += DispatcherTimer_Tick;
     }
 
+    private void TaskTimerViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
     [RelayCommand]
     private async Task Cancel()
     {
@@ -129,7 +134,7 @@ public partial class TaskTimerViewModel : BaseViewModel
     [RelayCommand]
     private void Start()
     {
-        if (selectedHour == 0 && selectedMinute == 0 && selectedSecond <= 1)
+        if (SelectedHour == 0 && SelectedMinute == 0 && SelectedSecond <= 1)
         {
             return;
         }

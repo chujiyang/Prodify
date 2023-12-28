@@ -81,6 +81,8 @@ public partial class EventDetailViewModel : BaseViewModel
     async System.Threading.Tasks.Task Submit()
     {
         UnsubscribeNotification();
+        OperatingEvent.EventName = OperatingEvent.EventName.Trim();
+        OperatingEvent.Notes = OperatingEvent.Notes.Trim();
         WeakReferenceMessenger.Default.Send(new EventInsertOrUpdateMessage(OperatingEvent));
 
         await Shell.Current.GoToAsync("..");

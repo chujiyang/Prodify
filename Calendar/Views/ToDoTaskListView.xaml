@@ -11,7 +11,8 @@
         <viewmodels:ToDoTaskListViewModel/>
     </ContentView.BindingContext>
 
-    <Grid x:Name="KeyboardPadding" RowDefinitions="*,140, Auto" HorizontalOptions="Fill" VerticalOptions="FillAndExpand">
+    <Grid x:Name="KeyboardPadding" RowDefinitions="*,140, Auto" HorizontalOptions="Fill" VerticalOptions="FillAndExpand"
+          Background="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}">
         <ListView:SfListView x:Name="listView" Grid.Row="0"
                         ScrollBarVisibility="Always"
                         SelectionMode="Single"
@@ -104,11 +105,13 @@
             </ListView:SfListView.EndSwipeTemplate>
         </ListView:SfListView>
 
-        <Grid Grid.Row="1" ColumnDefinitions="*,32" Margin="8, 12, 16, 8" ColumnSpacing="0">
+        <Grid Grid.Row="1" ColumnDefinitions="*,48" Margin="8, 12, 16, 8" ColumnSpacing="0">
             <ScrollView Margin="0,0,8, 0" Grid.Column="0" VerticalOptions="FillAndExpand">
                 <Editor x:Name="editor"
-                    Placeholder="Enter your to do task here."                
-                    Text="{Binding NewTaskDescription}" MinimumHeightRequest="120" MaximumHeightRequest="120" HorizontalOptions="FillAndExpand" AutoSize="TextChanges" 
+                    Placeholder="Enter task description here. (No more than 100 characters)"
+                    MaxLength="100"
+                    Text="{Binding NewTaskDescription}" MinimumHeightRequest="120" MaximumHeightRequest="120"
+                        HorizontalOptions="FillAndExpand" AutoSize="TextChanges" 
                         Focused="editor_Focused"
                         Unfocused="editor_Unfocused"
                         />
@@ -118,7 +121,7 @@
                 VerticalOptions="Start"
                 BorderColor="Transparent"
                 BackgroundColor="Transparent"
-                Margin="8, 8, 0, 0"
+                Margin="6, 8, 0, 0"
                 Padding="0"
                 HeightRequest="24"
                 WidthRequest="24"

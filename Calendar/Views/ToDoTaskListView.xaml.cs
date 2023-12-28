@@ -45,6 +45,6 @@ public partial class ToDoTaskListView : ContentView
 
     private void editor_Unfocused(object sender, FocusEventArgs e)
     {
-        KeyboardPadding.Margin = new Thickness(0,0, 0, 0);
+        KeyboardPadding.Margin = new Thickness(0, 0, 0, 0);
     }
 }

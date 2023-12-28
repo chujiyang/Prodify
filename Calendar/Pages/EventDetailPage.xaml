@@ -167,12 +167,14 @@
         </Grid>
             
         <Label Grid.Row="5" Grid.Column="0"
-            Text="Note"
+            Text="Notes"
             VerticalOptions="Start" 
             HorizontalOptions="End" />
         <ScrollView Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" VerticalOptions="FillAndExpand">
-                <Editor x:Name="Note" Text="{Binding OperatingEvent.Notes, Mode=TwoWay}" 
-                        Placeholder="Enter note" MinimumHeightRequest="120" MaximumHeightRequest="200" HorizontalOptions="FillAndExpand" AutoSize="TextChanges" />
+                <Editor x:Name="Note" Text="{Binding OperatingEvent.Notes, Mode=TwoWay}"
+                        Placeholder="Enter notes here. (No more than 100 characters)" 
+                        MaxLength="100"
+                        MinimumHeightRequest="120" MaximumHeightRequest="200" HorizontalOptions="FillAndExpand" AutoSize="TextChanges" />
         </ScrollView>
 
         </Grid>

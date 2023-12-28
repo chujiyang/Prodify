@@ -7,9 +7,9 @@ using CoreGraphics;
 
 namespace Calendar.Views;
 
-public class FixedScrollView : ScrollView
+public class FixedKeyboardView : Grid
 {
-    public FixedScrollView()
+    public FixedKeyboardView()
     {
 #if IOS
         UIKeyboard.Notifications.ObserveWillShow(OnKeyboardShowing);
@@ -33,13 +33,14 @@ public class FixedScrollView : ScrollView
             double distance = control.GetOverlapDistance(rootUiView, kbFrame);
             if (distance > 0)
             {
-                Margin = new Thickness(Margin.Left, -distance, Margin.Right, distance);
+                Margin = new Thickness(Margin.Left, Margin.Top, Margin.Right, distance);
             }
         }
     }
+
     private void OnKeyboardHiding(object sender, UIKeyboardEventArgs args)
     {
-        Margin = new Thickness(Margin.Left, 0, Margin.Right, 0);
+        Margin = new Thickness(Margin.Left, Margin.Top, Margin.Right, 0);
     }
 #endif
 }

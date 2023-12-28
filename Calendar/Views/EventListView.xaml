@@ -27,10 +27,13 @@
                         IsStickyGroupHeader="True"
                         ItemsSource="{Binding Events}"
                         AllowSwiping="True"
+                        SwipeThreshold="24"
+                        SwipeOffset="96"
                         AllowGroupExpandCollapse="True" 
                         GroupHeaderSize="64"
                         HorizontalOptions="Fill" VerticalOptions="FillAndExpand"
                         AutoFitMode="DynamicHeight"
+                        ItemSpacing="0"
                         Background="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}"
                         TapCommand="{Binding ItemTappedCommand}">
             <ListView:SfListView.GroupHeaderTemplate>
@@ -58,12 +61,12 @@
             </ListView:SfListView.Behaviors>
             <ListView:SfListView.ItemTemplate>
                 <DataTemplate>
-                    <Grid Margin="4,6,4,6">
+                    <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"> </RowDefinition>
                             <RowDefinition Height="{Binding IsNotesVisible, Converter={converters:BoolToGridRowHeightConverter}}"></RowDefinition>
                         </Grid.RowDefinitions>
-                        <Grid Grid.Row="0">
+                        <Grid Grid.Row="0" Margin="0,0,0,0" Padding="0,8,0,8" BackgroundColor="{AppThemeBinding Light={StaticResource LightTaskBackground}, Dark={StaticResource DarkTaskBackground}}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="32"/>
                                 <ColumnDefinition Width="80"/>
@@ -85,15 +88,17 @@
                                    TextColor="{Binding IsFinished, Converter={StaticResource BoolToColorBrushConverter}}"
                                    VerticalOptions="Center"/>
                         </Grid>
-                        <Grid Grid.Row="1">
+                        <Grid Grid.Row="1" Margin="0,0,0,0" Padding="0,8,0,8"
+                              BackgroundColor="{AppThemeBinding Light={StaticResource LightNoteBackground}, Dark={StaticResource DarkNoteBackground}}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="32"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Label Grid.Column="1" Text="{Binding Notes}" Margin="0, 12, 12, 12"
-                                   FontSize="{OnPlatform Default=16,WinUI=14}" FontFamily="Roboto-Regular" CharacterSpacing="0.5"
-                                    Background="Transparent"
+                            <Label Grid.Column="1" Text="{Binding Notes}" Margin="0, 0, 0, 0"
+                                   FontSize="{OnPlatform Default=14,WinUI=12}" FontFamily="Roboto-Regular" CharacterSpacing="0.5"
+                                    BackgroundColor="Transparent"
                                     IsVisible="{Binding IsNotesVisible}"
+                                    LineHeight="1.2"
                                     TextColor="{AppThemeBinding Light={StaticResource LightLabelText}, Dark={StaticResource DarkLabelText}}" VerticalOptions="FillAndExpand"/>
                         </Grid>
                     </Grid>
