@@ -119,7 +119,7 @@ public partial class EventListViewModel : BaseViewModel
             var todayIndex = FindFirstItemOfDate(DateTime.Today);
             if (todayIndex > 0 && todayIndex < this.Events.Count)
             {
-                this.ListView.ScrollTo(this.Events[todayIndex]);
+                this.ListView.ScrollTo(this.Events[todayIndex], ScrollToPosition.MakeVisible);
             }
         }
     }

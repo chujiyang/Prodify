@@ -63,22 +63,12 @@
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
 
-  
-	<ItemGroup>
-	  <Compile Remove="Platforms\iOS\Renders\**" />
-	  <EmbeddedResource Remove="Platforms\iOS\Renders\**" />
-	  <MauiCss Remove="Platforms\iOS\Renders\**" />
-	  <MauiXaml Remove="Platforms\iOS\Renders\**" />
-	  <None Remove="Platforms\iOS\Renders\**" />
-	</ItemGroup>
-
 	<ItemGroup>
 	  <Compile Remove="Converters\RepeatedDayConverter.cs" />
 	  <Compile Remove="Pages\EventEditPage.xaml.cs" />
 	  <Compile Remove="ViewModels\EventEditViewModel.cs" />
 	  <Compile Remove="ViewModels\SchedulerDataBindingViewModel.cs" />
 	  <Compile Remove="ViewModels\TodoListViewModel.cs" />
-	  <Compile Remove="Views\KeyboardView.cs" />
 	  <Compile Remove="Views\ToDoListView.xaml.cs" />
 	</ItemGroup>
 

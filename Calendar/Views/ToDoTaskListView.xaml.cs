@@ -14,6 +14,8 @@ public partial class ToDoTaskListView : ContentView
         var toDoListViewModel = this.BindingContext as ToDoTaskListViewModel;
         if (toDoListViewModel != null)
         {
+            toDoListViewModel.ListView = new ListViewAdaptor(this.listView);
+
             toDoListViewModel.LoadToDoTasksAsync().ConfigureAwait(false);
         }
     }
@@ -36,13 +38,13 @@ public partial class ToDoTaskListView : ContentView
         }
     }
 
-    //private void Editor_Unfocused(object sender, FocusEventArgs e)
-    //{
-    //    var toDoListViewModel = this.BindingContext as ToDoTaskListViewModel;
-    //    if (toDoListViewModel != null)
-    //    {
-    //        toDoListViewModel(Unfocused(e.));
-    //    }
+    private void editor_Focused(object sender, FocusEventArgs e)
+    {
+        KeyboardPadding.Margin = new Thickness(0, 0, 0, 280);
+    }
 
-    //}
+    private void editor_Unfocused(object sender, FocusEventArgs e)
+    {
+        KeyboardPadding.Margin = new Thickness(0,0, 0, 0);
+    }
 }

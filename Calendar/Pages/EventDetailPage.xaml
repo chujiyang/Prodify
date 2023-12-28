@@ -11,7 +11,6 @@
              x:DataType="viewmodel:EventDetailViewModel"
              Shell.NavBarIsVisible="false">
     
-    <views:FixedScrollView Background="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}">
         <Grid RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto"
           ColumnDefinitions="64, 180, *"
           HorizontalOptions="FillAndExpand"
@@ -171,10 +170,11 @@
             Text="Note"
             VerticalOptions="Start" 
             HorizontalOptions="End" />
-        <Editor Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" x:Name="Note" Text="{Binding OperatingEvent.Notes, Mode=TwoWay}" 
-                    Placeholder="Enter note" HeightRequest="300" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand"/>
+        <ScrollView Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" VerticalOptions="FillAndExpand">
+                <Editor x:Name="Note" Text="{Binding OperatingEvent.Notes, Mode=TwoWay}" 
+                        Placeholder="Enter note" MinimumHeightRequest="120" MaximumHeightRequest="200" HorizontalOptions="FillAndExpand" AutoSize="TextChanges" />
+        </ScrollView>
 
-    </Grid>
-    </views:FixedScrollView>
+        </Grid>
 
 </pages:BasePage>

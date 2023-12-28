@@ -1,7 +1,9 @@
-﻿namespace Calendar.ViewModels
+﻿using Microsoft.Maui.Controls;
+
+namespace Calendar.ViewModels
 {
     public interface IListView
     {
-        void ScrollTo(Object obj) { }
+        void ScrollTo(Object obj, ScrollToPosition position) { }
     }
 }

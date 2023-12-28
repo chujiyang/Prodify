@@ -10,7 +10,6 @@
              x:DataType="viewmodel:EditToDoTaskViewModel"
              Shell.NavBarIsVisible="false">
 
-    <views:FixedScrollView Background="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}">
         <Grid RowDefinitions="Auto, Auto"
               ColumnDefinitions="*"
               HorizontalOptions="FillAndExpand"
@@ -31,8 +30,9 @@
                         Command="{Binding SubmitCommand}" HorizontalOptions="Center" VerticalOptions="Center" MinimumWidthRequest="80" />
             </Grid>
 
-            <Editor  Grid.Row="1" x:Name="TaskName" MinimumHeightRequest="80" HorizontalOptions="FillAndExpand"
+        <ScrollView Grid.Row="1" VerticalOptions="FillAndExpand">
+            <Editor  x:Name="TaskName" MinimumHeightRequest="120" MaximumHeightRequest="180" HorizontalOptions="FillAndExpand"
             Placeholder="Enter task description" Text="{Binding OperatingTask.Description, Mode=TwoWay}"/>
-        </Grid>
-    </views:FixedScrollView>
+        </ScrollView>
+    </Grid>
 </pages:BasePage>

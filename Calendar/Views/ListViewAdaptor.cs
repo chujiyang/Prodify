@@ -11,14 +11,14 @@ public class ListViewAdaptor : IListView
     {
         _listView = listView;
     }
-        public void ScrollTo(Object obj)
+        public void ScrollTo(Object obj, ScrollToPosition position)
     {
         if (obj != null)
         {
             var index = _listView.DataSource.DisplayItems.IndexOf(obj);
             if (index >= 0)
             {
-                _listView.ItemsLayout.ScrollToRowIndex(index, ScrollToPosition.Start, true);
+                _listView.ItemsLayout.ScrollToRowIndex(index, position, true);
             }
         }
     }

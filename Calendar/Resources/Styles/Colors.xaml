@@ -46,11 +46,11 @@
     <Color x:Key="LightTaskBackground">#E6EFF4</Color>
     <Color x:Key="DarkTaskBackground">#292929</Color>
 
-    <Color x:Key="LightTabItemTextColor">#32373B</Color>
-    <Color x:Key="DarkTabItemTextColor">White</Color>
+    <Color x:Key="LightTabItemTextColor">#ACACAC</Color>
+    <Color x:Key="DarkTabItemTextColor">#909090</Color>
 
-    <Color x:Key="LightTabItemSelectedTextColor">Black</Color>
-    <Color x:Key="DarkTabItemSelectedTextColor">#292929</Color>
+    <Color x:Key="LightTabItemSelectedTextColor">#050502</Color>
+    <Color x:Key="DarkTabItemSelectedTextColor">#FBFCFE</Color>
 
     <Color x:Key="LightTabBarBackgroundColor">#E6EFF4</Color>
     <Color x:Key="DarkTabBarBackgroundColor">#09110C</Color>

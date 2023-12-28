@@ -14,6 +14,8 @@ public partial class ToDoTaskListViewModel : BaseViewModel
 
     private object syncToDoTasks;
 
+    public IListView ListView { get; set; }
+
     /// <summary>
     /// Gets or sets appointments.
     /// </summary>
@@ -109,8 +111,12 @@ public partial class ToDoTaskListViewModel : BaseViewModel
         };
 
         await SaveToDoTaskAsync(toDoTask).ConfigureAwait(false);
-
+        
         this.NewTaskDescription = string.Empty;
+        if (this.ListView != null)
+        {
+            this.ListView.ScrollTo(this.ToDoTasks.Count - 1, ScrollToPosition.End);
+        }
     }
 
     [RelayCommand]

@@ -129,6 +129,11 @@ public partial class TaskTimerViewModel : BaseViewModel
     [RelayCommand]
     private void Start()
     {
+        if (selectedHour == 0 && selectedMinute == 0 && selectedSecond <= 1)
+        {
+            return;
+        }
+
         TotalSeconds = SelectedHour * 3600 + SelectedMinute * 60 + SelectedSecond;
         Seconds = TotalSeconds;
         RemainingTime = TimeSpan.FromSeconds(TotalSeconds);
