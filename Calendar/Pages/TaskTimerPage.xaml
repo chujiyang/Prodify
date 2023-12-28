@@ -96,15 +96,15 @@
 
         <Grid Grid.Row="3">
             <HorizontalStackLayout HorizontalOptions="Center">
-                <Picker x:Name="HourPicker" HeightRequest="30" WidthRequest="48"  HorizontalOptions="Center"
+                <Picker x:Name="HourPicker" HeightRequest="30" WidthRequest="{OnPlatform Default=48,WinUI=80}"  HorizontalOptions="Center"
                                             ItemsSource="{Binding HoursList}" SelectedItem="{Binding SelectedHour, Mode=TwoWay}">
                 </Picker>
                 <Label Text="Hour" VerticalOptions="Center" HorizontalOptions="Center" Margin="8,0, 4, 0" Background="Transparent"></Label>
-                <Picker x:Name="MinutePicker" HeightRequest="30" WidthRequest="48" HorizontalOptions="Center"
+                <Picker x:Name="MinutePicker" HeightRequest="30" WidthRequest="{OnPlatform Default=48,WinUI=80}" HorizontalOptions="Center"
                                             ItemsSource="{Binding MinutesList}" SelectedItem="{Binding SelectedMinute, Mode=TwoWay}">
                 </Picker>
                 <Label Text="Minute" VerticalOptions="Center" HorizontalOptions="Center" Margin="4,0, 4, 0" Background="Transparent"></Label>
-                <Picker x:Name="SecondsPicker" HeightRequest="30" WidthRequest="48" HorizontalOptions="Center"
+                <Picker x:Name="SecondsPicker" HeightRequest="30" WidthRequest="{OnPlatform Default=48,WinUI=80}" HorizontalOptions="Center"
                                                 ItemsSource="{Binding SecondsList}" SelectedItem="{Binding SelectedSecond, Mode=TwoWay}" >
                 </Picker>
                 <Label Text="Second" VerticalOptions="Center" HorizontalOptions="Center" Margin="4,0, 8, 0" Background="Transparent"></Label>

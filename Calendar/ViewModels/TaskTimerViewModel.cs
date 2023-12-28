@@ -9,7 +9,7 @@ namespace Calendar.ViewModels;
 
 [QueryProperty("TaskType", "TaskType")]
 [QueryProperty("TaskDescription", "TaskDescription")]
-[QueryProperty("SelectedHour", "SelectdHour")]
+[QueryProperty("SelectedHour", "SelectedHour")]
 [QueryProperty("SelectedMinute", "SelectedMinute")]
 [QueryProperty("SelectedSecond", "SelectedSecond")]
 [QueryProperty("Id", "Id")]
