@@ -70,7 +70,7 @@ public partial class EventListViewModel : BaseViewModel
 
         WeakReferenceMessenger.Default.Register<EventCompleteMessage>(this, async (r, m) =>
         {
-            if (m != null && m.Value != null)
+            if (m != null)
             {
                 var itemIndex = FindItemIndex((int)m.Value);
                 if (itemIndex >= 0)

@@ -12,7 +12,7 @@ public partial class App : Application
         // Syncfusion 24.1.41
         Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("MzAwMDYyMEAzMjM0MmUzMDJlMzBGWEt2MkxVUnJJekJoNU50MXZSc1lwbktGYml6SjRIZkc0aUkrL0VBTE9vPQ==");
 
-        App.Current.UserAppTheme = AppTheme.Dark;
+        //App.Current.UserAppTheme = AppTheme.Dark;
 
         Application.Current.RequestedThemeChanged += (s, a) =>
         {

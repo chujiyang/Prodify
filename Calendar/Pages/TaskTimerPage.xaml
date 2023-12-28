@@ -19,7 +19,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0"
+        <Grid Grid.Row="0" Padding="12"
                  ColumnDefinitions="33.33*, 33.33*, 33.33*"
                  ColumnSpacing="8" 
                  HorizontalOptions="FillAndExpand" Grid.ColumnSpan="3">
@@ -34,18 +34,19 @@
         </Grid>
 
         <Grid Grid.Row="1" BackgroundColor="{AppThemeBinding Light={StaticResource LightTaskBackground}, Dark={StaticResource DarkTaskBackground}}"
-              Margin="12,12,12,12"
-              Padding="12,12,12,12">
-            <ScrollView VerticalOptions="FillAndExpand">
-                <Label Text="{Binding TaskDescription}" MaximumHeightRequest="180"                    
+              Margin="24,0,24, 0"
+              MaximumHeightRequest="180">
+            <ScrollView VerticalOptions="FillAndExpand" Padding="12,12,12,12">
+                <Label Text="{Binding TaskDescription}" 
                     FontSize="{OnPlatform Default=16,WinUI=14}" FontFamily="Roboto-Regular" Background="Transparent"
                     CharacterSpacing="0.5"
                     Margin="0"                    
-                    HorizontalOptions="FillAndExpand"/>
+                    HorizontalOptions="FillAndExpand"
+                    VerticalOptions="FillAndExpand"/>
             </ScrollView>
         </Grid>
         <Grid Grid.Row="2">
-            <gauge:SfRadialGauge Grid.Row="0" x:Name="timerGauge" MinimumHeightRequest="300" MinimumWidthRequest="300">
+            <gauge:SfRadialGauge Grid.Row="0" x:Name="timerGauge" MinimumHeightRequest="280" MinimumWidthRequest="280" VerticalOptions="Center">
                 <gauge:SfRadialGauge.Axes>
                     <gauge:RadialAxis StartAngle="270"
                                 EndAngle="270"

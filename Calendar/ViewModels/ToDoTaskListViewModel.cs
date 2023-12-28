@@ -45,7 +45,7 @@ public partial class ToDoTaskListViewModel : BaseViewModel
 
         WeakReferenceMessenger.Default.Register<ToDoTaskCompleteMessage>(this, async (r, m) =>
         {
-            if (m != null && m.Value != null)
+            if (m != null)
             {
                 var itemIndex = FindTaskIndex((int)m.Value);
                 if (itemIndex >= 0)
