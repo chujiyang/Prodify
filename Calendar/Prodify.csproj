@@ -41,10 +41,16 @@
 
 	<PropertyGroup Condition="'$(TargetFramework)'=='net8.0-ios'">
 	  <ProvisioningType>manual</ProvisioningType>
+	  <CodesignKey>iPhone Distribution</CodesignKey>
+	  <CodesignProvision></CodesignProvision>
+	</PropertyGroup>
+<!--
+	<PropertyGroup Condition="'$(TargetFramework)'=='net8.0-ios'">
+	  <ProvisioningType>automatic</ProvisioningType>
           <CodesignProvision>hongyunyang-adhoc1</CodesignProvision>
 	  <CodesignKey>Apple Distribution: Hongyun Yang (C6LUK8VW6V)</CodesignKey>
 	</PropertyGroup>
-
+-->
   
 	<ItemGroup>
     <!-- App Icon -->
