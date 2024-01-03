@@ -11,6 +11,12 @@
         <viewmodels:ToDoTaskListViewModel/>
     </ContentView.BindingContext>
 
+    <ContentView.Resources>
+        <converters:BoolToColorConverter x:Key="BoolToColorBrushConverter" 
+                                   TrueColor="{AppThemeBinding Light={StaticResource LightFinishedColor}, Dark={StaticResource DarkFinishedColor}}" 
+                                   FalseColor="{AppThemeBinding Light={StaticResource LightPendingColor}, Dark={StaticResource DarkPendingColor}}"/>
+    </ContentView.Resources>
+
     <Grid x:Name="KeyboardPadding" RowDefinitions="*,140, Auto" HorizontalOptions="Fill" VerticalOptions="FillAndExpand"
           Background="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}">
         <ListView:SfListView x:Name="listView" Grid.Row="0"
@@ -52,7 +58,8 @@
                                         WidthRequest="24"
                                         VerticalOptions="Center" HorizontalOptions="Center"/>
                                 </Grid>
-                                <Label Grid.Column="1" Text="{Binding Description}"                                       
+                                <Label Grid.Column="1" Text="{Binding Description}"
+                                    TextColor="{Binding IsFinished, Converter={StaticResource BoolToColorBrushConverter}}"
                                     FontSize="{OnPlatform Default=16,WinUI=14}" FontFamily="Roboto-Regular" Background="Transparent"
                                     LineBreakMode="WordWrap" LineHeight="1.2"
                                     CharacterSpacing="0.5"
