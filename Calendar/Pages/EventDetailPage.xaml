@@ -50,6 +50,7 @@
                             MinimumDate="{Binding MinDisplayDateTime}"
                             MaximumDate="{Binding MaxDisplayDateTime}"
                             RelativePosition="AlignBottom"
+                            Format="MM_dd_yyyy"
                             Background="{AppThemeBinding Light={StaticResource LightPickerBackground}, Dark={StaticResource DarkPickerBackground}}"
                             SelectedDate="{Binding OperatingEvent.Date, Mode=TwoWay}"                            
                             IsOpen="{Binding IsDateOpen, Mode=TwoWay}">
@@ -76,7 +77,7 @@
             
             <Button  
                 VerticalOptions="Center" 
-                Text="{Binding OperatingEvent.Date, StringFormat='{0:yyyy/MM/dd}'}"
+                Text="{Binding OperatingEvent.Date, StringFormat='{0:MM-dd-yyyy, ddd}'}"
                 Command="{Binding EditDateCommand}" />
         </Grid>
 
