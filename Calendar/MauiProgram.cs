@@ -4,12 +4,14 @@ using Calendar.ViewModels;
 using CommunityToolkit.Maui;
 using CommunityToolkit.Maui.Markup;
 using Microsoft.Extensions.Logging;
+using Plugin.LocalNotification;
 using Syncfusion.Maui.Core.Hosting;
 
 namespace Calendar;
 
 public static class MauiProgram
 {
+
 	public static MauiApp CreateMauiApp()
 	{
 		var builder = MauiApp.CreateBuilder();
@@ -18,6 +20,7 @@ public static class MauiProgram
 			.UseMauiApp<App>()
             .UseMauiCommunityToolkit()
             .UseMauiCommunityToolkitMarkup()
+            .UseLocalNotification()
             .ConfigureFonts(fonts =>
 			{
 				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -48,5 +51,6 @@ public static class MauiProgram
         services.AddTransientWithShellRoute<EventDetailPage, EventDetailViewModel>(AppShell.GetRoute<EventDetailPage, EventDetailViewModel>());
         services.AddTransientWithShellRoute<TaskTimerPage, TaskTimerViewModel>(AppShell.GetRoute<TaskTimerPage, TaskTimerViewModel>());
         services.AddTransientWithShellRoute<EditToDoTaskPage, EditToDoTaskViewModel>(AppShell.GetRoute<EditToDoTaskPage, EditToDoTaskViewModel>());
+        services.AddTransientWithShellRoute<RecurrencySelectionPage, RecurrencySelectionViewModel>(AppShell.GetRoute<RecurrencySelectionPage, RecurrencySelectionViewModel>());
     }
 }

@@ -73,6 +73,9 @@
                                 <ColumnDefinition Width="80"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
+                            <Image Grid.Column="0" Source="repeat.png" HeightRequest="16" 
+                                 WidthRequest="16" IsVisible="{Binding IsRecurring}"
+                                 VerticalOptions="Center" HorizontalOptions="Center"/>
                             <Label Grid.Column="1" Text="{Binding From, Converter={converters:TimespanToStringConverter}}" 
                                    FontSize="{OnPlatform Default=16,WinUI=14}" FontFamily="Roboto-Regular" CharacterSpacing="0.5"
                                    TextColor="{Binding IsFinished, Converter={StaticResource BoolToColorBrushConverter}}"
@@ -109,6 +112,8 @@
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="32" />
+                            <ColumnDefinition Width="32" />
+                            <ColumnDefinition Width="32" />
                         </Grid.ColumnDefinitions>
                         <Grid BackgroundColor="Transparent" HorizontalOptions="Fill" VerticalOptions="Fill" Grid.Column="0">
                             <Grid.GestureRecognizers>
@@ -121,6 +126,22 @@
                             <Image Source="uncheck.png" HeightRequest="24" IsVisible="{Binding IsFinished, Converter={converters:InverseBoolConverter}}"
                                            WidthRequest="24"
                                            VerticalOptions="Center" HorizontalOptions="Center"/>
+                        </Grid>
+                        <Grid BackgroundColor="Transparent" HorizontalOptions="Fill" VerticalOptions="Fill" Grid.Column="1">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer  Command="{Binding Path=BindingContext.EditEventSeriesCommand, Source={x:Reference listView}}" 
+                                      CommandParameter="{Binding .}"/>
+                            </Grid.GestureRecognizers>
+                            <Image Source="editseries.png" HeightRequest="24" WidthRequest="24" IsVisible="{Binding IsRecurring}"
+                                    VerticalOptions="Center" HorizontalOptions="Center"/>
+                        </Grid>
+                        <Grid BackgroundColor="Transparent" HorizontalOptions="Fill" VerticalOptions="Fill" Grid.Column="2">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer  Command="{Binding Path=BindingContext.DeleteEventSeriesCommand, Source={x:Reference listView}}" 
+                                      CommandParameter="{Binding .}"/>
+                            </Grid.GestureRecognizers>
+                            <Image Source="deleteseries.png" HeightRequest="24" WidthRequest="24" IsVisible="{Binding IsRecurring}"
+                                    VerticalOptions="Center" HorizontalOptions="Center"/>
                         </Grid>
                     </Grid>
                 </DataTemplate>

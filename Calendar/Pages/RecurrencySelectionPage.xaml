@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<pages:BasePage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                xmlns:pages="clr-namespace:Calendar.Pages"
+                xmlns:ListView="clr-namespace:Syncfusion.Maui.ListView;assembly=Syncfusion.Maui.ListView"             
+                xmlns:viewmodel="clr-namespace:Calendar.ViewModels"
+                x:Class="Calendar.Pages.RecurrencySelectionPage"
+                x:TypeArguments="viewmodel:RecurrencySelectionViewModel"
+                x:DataType="viewmodel:RecurrencySelectionViewModel"
+                Shell.NavBarIsVisible="false">
+    <Grid RowDefinitions="Auto, Auto">
+        <Grid Grid.Row="0"
+          ColumnDefinitions="33.33*, 33.33*, 33.33*"
+          ColumnSpacing="8" 
+          HorizontalOptions="FillAndExpand" Grid.ColumnSpan="3">
+                <Button Text="Back" Grid.Column="0"
+                     Command="{Binding BackCommand}" HorizontalOptions="Center" VerticalOptions="Center" MinimumWidthRequest="80" />
+                <Label Grid.Column="1"
+                    Text="Repeat"
+                    VerticalOptions="Center" 
+                    HorizontalOptions="Center" Margin="12, 0, 12, 0"/>
+        </Grid>
+
+        <ListView:SfListView Grid.Row="1" x:Name="collectionView"
+                ItemsSource="{Binding DaysOfWeek}"
+                SelectionMode="Multiple"
+                SelectedItems="{Binding SelectedDaysOfWeek}">
+        </ListView:SfListView>
+    
+    </Grid>
+</pages:BasePage>

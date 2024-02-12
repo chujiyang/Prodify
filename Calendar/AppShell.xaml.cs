@@ -10,7 +10,8 @@ public partial class AppShell : Shell
         CreateRoutePageMapping<MainPage, MainViewModel>(),
         CreateRoutePageMapping<EventDetailPage, EventDetailViewModel>(),
         CreateRoutePageMapping<TaskTimerPage, TaskTimerViewModel>(),
-        CreateRoutePageMapping<EditToDoTaskPage, EditToDoTaskViewModel>()
+        CreateRoutePageMapping<EditToDoTaskPage, EditToDoTaskViewModel>(),
+        CreateRoutePageMapping<RecurrencySelectionPage, RecurrencySelectionViewModel>()
     });
 
     public AppShell()
@@ -58,6 +59,11 @@ public partial class AppShell : Shell
             if (typeof(TPage) == typeof(EditToDoTaskPage))
             {
                 return $"//{nameof(MainPage)}/{nameof(EditToDoTaskPage)}";
+            }
+
+            if (typeof(TPage) == typeof(RecurrencySelectionPage))
+            {
+                return $"//{nameof(MainPage)}/{nameof(EventDetailPage)}/{nameof(RecurrencySelectionPage)}";
             }
 
             throw new NotSupportedException($"{typeof(TPage)} Not Implemented in {nameof(pageRouteMappingDictionary)}");

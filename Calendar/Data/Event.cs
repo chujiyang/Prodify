@@ -1,6 +1,5 @@
 ﻿using Calendar.Extensions;
 using SQLite;
-using System.Management;
 
 namespace Calendar.Data;
 
@@ -55,6 +54,46 @@ public class Event
     /// </summary>
     public bool IsFinished { get; set; }
 
+    /// <summary>
+    /// Gets or sets the duration of the task in minutes
+    /// </summary>
+    public int Duration { get; set; }
+
+    /// <summary>
+    /// Gets or set the recurrence pattern.
+    /// </summary>
+    public int RecurrencePattern { get; set; }
+
+    /// <summary>
+    /// Gets or sets the recurrence interval.
+    /// </summary>
+    public int RecurrenceInterval { get; set; }
+
+    /// <summary>
+    /// Gets or set whether send alarming.
+    /// </summary>
+    public int AlertType { get; set; }
+
+    /// <summary>
+    /// Gets or sets the minutes before the reminding.
+    /// </summary>
+    public int AlertBefore { get; set; }
+
+    /// <summary>
+    /// Gets or sets the created time
+    /// </summary>
+    public DateTime CreatedTime { get; set; }
+
+    /// <summary>
+    /// Gets or sets the finished time
+    /// </summary>
+    public DateTime? FinishedTime { get; set; }
+
+    /// <summary>
+    /// Gets and gets the linked event id.
+    /// </summary>
+    public int LinkedId { get; set; }
+
     #endregion
 
     #region Constructor
@@ -70,7 +109,10 @@ public class Event
         Notes = string.Empty;
         RecurrenceFrequencyId = 0;
         RecurrenceEndTime = To;
+        RecurrencePattern = 0;
+        RecurrenceInterval = 1;
         IsFinished = false;
+        LinkedId = 0;
     }
 
     #endregion

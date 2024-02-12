@@ -7,5 +7,7 @@ namespace Calendar.ViewModels
         public EventInsertOrUpdateMessage(EventViewModel value) : base(value)
         {
         }
+
+        public bool IsEditingSeries { get; set; }
     }
 }

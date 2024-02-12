@@ -1,10 +1,13 @@
-﻿using Calendar.Extensions;
+﻿using Calendar.Data;
+using Calendar.Extensions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using System.Collections.ObjectModel;
 
 namespace Calendar.ViewModels;
 
+[QueryProperty("IsEditingSeries", "IsEditingSeries")]
 [QueryProperty("DialogTitle", "DialogTitle")]
 [QueryProperty("OperatingEvent", "OperatingEvent")]
 public partial class EventDetailViewModel : BaseViewModel
@@ -13,8 +16,7 @@ public partial class EventDetailViewModel : BaseViewModel
     EventViewModel operatingEvent;
 
     /// <summary>
-    /// Gets or sets the schedule min date time.
-    /// </summary>
+    /// Gets or sets the schedule min date time.    /// </summary>
     [ObservableProperty]
     DateTime minDisplayDateTime;
 
@@ -36,6 +38,9 @@ public partial class EventDetailViewModel : BaseViewModel
     [ObservableProperty]
     string dialogTitle;
 
+    [ObservableProperty]
+    bool isEditingSeries;
+
     private bool subscribedNotification = false;
     private DateTime minDateTime;
     private DateTime maxDateTime;
@@ -51,6 +56,29 @@ public partial class EventDetailViewModel : BaseViewModel
         isFromOpen = false;
         isToOpen = false;
         dialogTitle = "Edit Task";
+
+        WeakReferenceMessenger.Default.Register<RecurrencyUpdateMessage>(this, (r, m) =>
+        {
+            if (m != null && m.Value != null && OperatingEvent != null)
+            {
+                int recurrencyPattern = 0;
+                foreach (var day in m.Value.SelectedDaysOfWeek)
+                {
+                    for (int i = 0; i < 7; i++)
+                    {
+                        if (day == RecurrencySelectionViewModel.s_DaysOfWeeks[i])
+                        {
+                            recurrencyPattern |= (1 << i);
+                            break;
+                        }
+                    }
+                }
+
+                OperatingEvent.RecurrenceFrequencyId = (int)RecurrenceType.DayOfWeek;
+                OperatingEvent.RecurrencePattern = recurrencyPattern;
+            }
+        });
+
     }
 
     [RelayCommand]
@@ -78,12 +106,23 @@ public partial class EventDetailViewModel : BaseViewModel
     }
 
     [RelayCommand]
+    void UpdateAlert(string message)
+    {
+        AlertType alertType = AlertType.NoAlert;
+        if (Enum.TryParse<AlertType>(message, out alertType))
+        {
+            OperatingEvent.AlertType = alertType;
+        }
+    }
+
+    [RelayCommand]
     async System.Threading.Tasks.Task Submit()
     {
         UnsubscribeNotification();
         OperatingEvent.EventName = OperatingEvent.EventName.Trim();
         OperatingEvent.Notes = OperatingEvent.Notes.Trim();
-        WeakReferenceMessenger.Default.Send(new EventInsertOrUpdateMessage(OperatingEvent));
+
+        WeakReferenceMessenger.Default.Send(new EventInsertOrUpdateMessage(OperatingEvent) { IsEditingSeries = this.IsEditingSeries});
 
         await Shell.Current.GoToAsync("..");
     }
@@ -93,6 +132,34 @@ public partial class EventDetailViewModel : BaseViewModel
     {
         UnsubscribeNotification();
         await Shell.Current.GoToAsync("..");
+    }
+
+    [RelayCommand]
+    async System.Threading.Tasks.Task UpdateRepeat()
+    {
+        if (OperatingEvent == null)
+        {
+            return;
+        }
+
+        var selectedDays = new ObservableCollection<object>();
+        if (OperatingEvent.RecurrenceFrequencyId != 0)
+        {
+            for (int i = 0; i < 7; i++)
+            {
+                if ((OperatingEvent.RecurrencePattern & (1 << i)) != 0)
+                {
+                    selectedDays.Add(RecurrencySelectionViewModel.s_DaysOfWeeks[i]);
+                }
+            }
+        }
+
+        var navigationParameter = new Dictionary<string, object>
+        {
+            {"SelectedDaysOfWeek", selectedDays}
+        };
+
+        await Shell.Current.GoToAsync($"//MainPage/EventDetailPage/RecurrencySelectionPage", navigationParameter);
     }
 
     private void SubscribeNotification()
@@ -112,7 +179,6 @@ public partial class EventDetailViewModel : BaseViewModel
             OperatingEvent.PropertyChanged -= OperatingEvent_PropertyChanged;
         }
     }
-
 
     private void OperatingEvent_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
     {

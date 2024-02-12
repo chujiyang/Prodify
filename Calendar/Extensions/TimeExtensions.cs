@@ -7,6 +7,33 @@ internal static class TimeExtensions
         return new DateTime(time.Year, time.Month, time.Day);
     }
 
+    public static DateTime ChangeDate(this DateTime time, DateTime newDate)
+    {
+        time = new DateTime(newDate.Year, newDate.Month, newDate.Day, time.Hour, time.Minute, time.Second);
+
+        return time;
+    }
+
+    public static DateTime ChangeTime(this DateTime time, TimeSpan timeSpan)
+    {
+        return new DateTime(time.Year, time.Month, time.Day, timeSpan.Hours, timeSpan.Minutes, timeSpan.Seconds);
+    }
+
+    public static DateTime FirstSecondOfDate(this DateTime time)
+    {
+        return new DateTime(time.Year, time.Month, time.Day, 0, 0, 0);
+    }
+
+    public static TimeSpan GetTimeSpanInTime(this DateTime time)
+    {
+        return new TimeSpan(time.Hour, time.Minute, time.Second);
+    }
+
+    public static DateTime LastSecondOfDate(this DateTime time)
+    {
+        return new DateTime(time.Year, time.Month, time.Day, 23, 59, 59);
+    }
+
     public static DateTime FirstDayOfWeek(this DateTime time)
     {
         var firstDayOfWeek = time.AddDays(-(int)(time.DayOfWeek));
