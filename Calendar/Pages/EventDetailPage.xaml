@@ -17,43 +17,60 @@
     <pages:BasePage.Resources>
         <buttons:SfRadioGroupKey x:Key="alertOptions"/>
         <ResourceDictionary>
-            <toolkit:BoolToObjectConverter x:Key="RepeatTextConverter" TrueObject="Daily ->" FalseObject="Never ->" />
+            <toolkit:BoolToObjectConverter x:Key="TitleConverter" TrueObject="New Task" FalseObject="Edit Task" />
+            <toolkit:BoolToObjectConverter x:Key="RepeatTextConverter" TrueObject="Daily  →" FalseObject="Never  →" />
+            <toolkit:EnumToBoolConverter x:Key="AlertConverter" />
+            <ResourceDictionary>
+                <toolkit:BoolToObjectConverter x:Key="EditSeriesConverter" TrueObject="Edit occurence" FalseObject="Edit series" />
+            </ResourceDictionary>
         </ResourceDictionary>
     </pages:BasePage.Resources>
-    <Grid RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto"
+    <Grid
+          
         ColumnDefinitions="64, 180, *"
         HorizontalOptions="FillAndExpand"
-        RowSpacing="12"
+        RowSpacing="0"
         ColumnSpacing="5">
 
-        <Grid Grid.Row="0"
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="{Binding SeriesViewModel.ShowEditSeries, Converter={converters:BoolToGridRowHeightConverter}}"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0" Margin="0, 0"
              ColumnDefinitions="33.33*, 33.33*, 33.33*"
              ColumnSpacing="8" 
              HorizontalOptions="FillAndExpand" Grid.ColumnSpan="3">
             <Button Text="Cancel" Grid.Column="0"
                 Command="{Binding CancelCommand}" HorizontalOptions="Center" VerticalOptions="Center" MinimumWidthRequest="80" />
             <Label Grid.Column="1"
-                Text="{Binding DialogTitle}"
+                Text="{Binding OperatingEvent.IsNewEvent, Converter={StaticResource TitleConverter}}"
                 VerticalOptions="Center" 
                 HorizontalOptions="Center" Margin="12, 0, 12, 0"/>
             <Button Text="Save" Grid.Column="2"
                     Command="{Binding SubmitCommand}" HorizontalOptions="Center" VerticalOptions="Center" MinimumWidthRequest="80" />
         </Grid>
-        
-        <Label Grid.Row="1" Grid.Column="0"
+
+        <Label Grid.Row="1" Grid.Column="0" Margin="0, 8"
             Text="Title"
             VerticalOptions="Center" 
             HorizontalOptions="End" />
-        
-        <Entry  Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"  x:Name="TaskName"
+
+        <Entry  Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"  x:Name="TaskName" Margin="0, 8"
             Placeholder="Enter task title" Text="{Binding OperatingEvent.EventName, Mode=TwoWay}"/>
-        
-        <Label Grid.Row="2" Grid.Column="0"
+
+        <Label Grid.Row="2" Grid.Column="0" Margin="0, 8"
             Text="Date"
             HorizontalOptions="End"
             VerticalOptions="Center"/>
 
-        <Grid Grid.Row="2" Grid.Column="1">
+        <Grid Grid.Row="2" Grid.Column="1" Margin="0, 8">
             <picker:SfDatePicker x:Name="DatePicker"
                             Mode="RelativeDialog"
                             MinimumDate="{Binding MinDisplayDateTime}"
@@ -90,15 +107,15 @@
                 Command="{Binding EditDateCommand}" />
         </Grid>
 
-        <Label Grid.Row="3" Grid.Column="0"
+        <Label Grid.Row="3" Grid.Column="0" Margin="0, 8"
             Text="From"
             HorizontalOptions="End"
             VerticalOptions="Center"/>
 
-        <Grid Grid.Row="3" Grid.Column="1">
+        <Grid Grid.Row="3" Grid.Column="1" Margin="0, 8">
                 <picker:SfTimePicker x:Name="FromPicker"
                              Mode="RelativeDialog"
-                             MinuteInterval="15"
+                             MinuteInterval="1"
                              RelativePosition="AlignBottom"
                              Format="hh_mm_tt"
                              SelectedTime="{Binding OperatingEvent.From, Mode=TwoWay}"
@@ -131,17 +148,17 @@
                  Text="{Binding OperatingEvent.From, Converter={converters:TimespanToStringConverter}}"
                  Command="{Binding EditFromCommand}"/>
         </Grid>
-        
-        <Label  Grid.Row="4" Grid.Column="0"
+
+        <Label  Grid.Row="4" Grid.Column="0" Margin="0, 8"
                 Text="To"
                 HorizontalOptions="End"
                 VerticalOptions="Center" />
 
-        
-        <Grid Grid.Row="4" Grid.Column="1">
+
+        <Grid Grid.Row="4" Grid.Column="1" Margin="0, 8">
             <picker:SfTimePicker x:Name="ToPicker"
                              Mode="RelativeDialog"
-                             MinuteInterval="15"
+                             MinuteInterval="1"
                              RelativePosition="AlignBottom"
                              Format="hh_mm_tt"
                              SelectedTime="{Binding OperatingEvent.To, Mode=TwoWay}"
@@ -175,46 +192,68 @@
                 Text="{Binding OperatingEvent.To, Converter={converters:TimespanToStringConverter}}"
                 Command="{Binding EditToCommand}"/>
         </Grid>
-            
-        <Label Grid.Row="5" Grid.Column="0"
+
+        <Label Grid.Row="5" Grid.Column="0" Margin="0, 8"
             Text="Notes"
             VerticalOptions="Start" 
             HorizontalOptions="End" />
-        <ScrollView Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" VerticalOptions="FillAndExpand">
+        <ScrollView Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" Margin="0, 8" VerticalOptions="FillAndExpand">
                 <Editor x:Name="Note" Text="{Binding OperatingEvent.Notes, Mode=TwoWay}"
                         Placeholder="Enter notes here. (No more than 100 characters)" 
                         MaxLength="100"
                         MinimumHeightRequest="120" MaximumHeightRequest="200" HorizontalOptions="FillAndExpand" AutoSize="TextChanges" />
         </ScrollView>
 
-        <Label Grid.Row="6" Grid.Column="0"
-               Text="Alert"
+        <Label Grid.Row="6" Grid.Column="0" Margin="0, 8"
+               Text="Alerts"
                VerticalOptions="Center"
                HorizontalOptions="End" />
-        <HorizontalStackLayout Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2" VerticalOptions="Center" HorizontalOptions="StartAndExpand">
-            <RadioButton GroupName="alertOptions" Content="NoAllert"
+        <HorizontalStackLayout Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2" Margin="0, 8" VerticalOptions="Center" HorizontalOptions="StartAndExpand">
+            <RadioButton GroupName="alertOptions" Content="None" VerticalOptions="Center"
                                    IsChecked="{Binding OperatingEvent.AlertType, Converter={StaticResource AlertConverter}, ConverterParameter={x:Static data:AlertType.NoAlert}, Mode=OneWay}">
                 <RadioButton.GestureRecognizers>
                     <TapGestureRecognizer Command="{Binding UpdateAlertCommand}" CommandParameter="NoAlert" />
                 </RadioButton.GestureRecognizers>
             </RadioButton>
-            <RadioButton GroupName="alertOptions" Content="Notification"
+            <RadioButton GroupName="alertOptions" Content="Reminder" VerticalOptions="Center"
                                    IsChecked="{Binding OperatingEvent.AlertType, Converter={StaticResource AlertConverter}, ConverterParameter={x:Static data:AlertType.Notification}, Mode=OneWay}">
                 <RadioButton.GestureRecognizers>
                     <TapGestureRecognizer Command="{Binding UpdateAlertCommand}" CommandParameter="Notification" />
                 </RadioButton.GestureRecognizers>
             </RadioButton>
-            <RadioButton GroupName="alertOptions" Content="Alarm"
+            <RadioButton GroupName="alertOptions" Content="Alarm" VerticalOptions="Center"
                                    IsChecked="{Binding OperatingEvent.AlertType, Converter={StaticResource AlertConverter}, ConverterParameter={x:Static data:AlertType.Alarm}, Mode=OneWay}">
                 <RadioButton.GestureRecognizers>
                     <TapGestureRecognizer Command="{Binding UpdateAlertCommand}" CommandParameter="Alarm" />
                 </RadioButton.GestureRecognizers>
             </RadioButton>
         </HorizontalStackLayout>
-        
-        <Label Grid.Row="7" Grid.Column="0" IsVisible="{Binding IsEditingSeries}" Text="Repeat" VerticalOptions="Center" HorizontalOptions="End"/>
-        <Button Grid.Row="7" Grid.Column="1" IsVisible="{Binding IsEditingSeries}" Text="{Binding OperatingEvent.IsRecurring, Converter={StaticResource RepeatTextConverter}}"
-                VerticalOptions="Center" HorizontalOptions="Start" Command="{Binding UpdateRepeatCommand}"/>
+
+        <HorizontalStackLayout Grid.Row="7" Grid.Column ="1" Grid.ColumnSpan="2"  Margin="0, 0"
+                               VerticalOptions="Center" HorizontalOptions="StartAndExpand" IsVisible="{Binding SeriesViewModel.ShowEditSeries}">
+            <RadioButton GroupName="updateSeriesOrOccurence" 
+                         Content="Edit Series"
+                         VerticalOptions="Center"
+                         IsChecked="{Binding SeriesViewModel.IsEditingSeries, Mode=OneWay}" IsVisible="{Binding SeriesViewModel.ShowEditSeries}">
+                <RadioButton.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding EditingSeriesOrOccuranceCommand}" CommandParameter="True" />
+                </RadioButton.GestureRecognizers>
+            </RadioButton>
+
+            <RadioButton GroupName="updateSeriesOrOccurence"
+                         Content="Edit current occurence"
+                         VerticalOptions="Center" 
+                         IsChecked="{Binding SeriesViewModel.IsEditingSeries, Converter={converters:InverseBoolConverter}, Mode=OneWay}" IsVisible="{Binding SeriesViewModel.ShowEditSeries}">
+                <RadioButton.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding EditingSeriesOrOccuranceCommand}" CommandParameter="False" />
+                </RadioButton.GestureRecognizers>
+            </RadioButton>
+        </HorizontalStackLayout>
+
+        <Label Grid.Row="8" Grid.Column ="0" Margin="0, 0" IsVisible="{Binding SeriesViewModel.IsEditingSeries}" Text="Repeat" VerticalOptions="Center" HorizontalOptions="End"/>
+        <Button Grid.Row="8" Grid.Column ="1" Margin="0, 0" IsVisible="{Binding SeriesViewModel.IsEditingSeries}" Text="{Binding OperatingEvent.IsRecurring, Converter={StaticResource RepeatTextConverter}}"
+                    VerticalOptions="Center" HorizontalOptions="Start" Command="{Binding UpdateRepeatCommand}"/>
+
     </Grid>
 
 </pages:BasePage>

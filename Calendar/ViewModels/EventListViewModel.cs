@@ -10,10 +10,25 @@ namespace Calendar.ViewModels;
 
 public partial class EventListViewModel : BaseViewModel
 {
+    enum Operations
+    {
+        Insert,
+        Update,
+        Delete,
+        LoadMoreBottom,
+        LoadMoreTop,
+        Today
+    };
+
     private DatabaseContext databaseContext;
 
     private List<ExceptionEvent> exceptionEvents;
+    private List<EventViewModel> allEvents;
+    private int startViewIndex;
+    private int endViewIndex; // exclusive
+    private int maxDisplayItems;
 
+    private object syncExceptionEvents;
     private object syncEvents;
 
     /// <summary>
@@ -22,6 +37,9 @@ public partial class EventListViewModel : BaseViewModel
     /// 
     [ObservableProperty]
     ObservableCollection<EventViewModel> events;
+
+    [ObservableProperty]
+    bool indicatorIsVisible;
 
     /// <summary>
     /// Gets or sets the schedule display date.
@@ -55,54 +73,61 @@ public partial class EventListViewModel : BaseViewModel
 
     private int DaysInTheFuture
     {
-        get { return 90; }
+        get { return 60; }
     }
 
     private int DaysInThePast
     {
-        get { return 90; }
+        get { return 60; }
     }
 
     private EventViewModel OperatingEvent {  get; set; }
 
     public EventListViewModel()
     {
+        syncExceptionEvents = new object();
         syncEvents = new object();
         databaseContext = ServiceHelper.GetService<DatabaseContext>();
-
-        events = new ObservableCollection<EventViewModel>();
+        allEvents = new List<EventViewModel>();
+        startViewIndex = 0;
+        endViewIndex = 0;
+        maxDisplayItems = 20;
         exceptionEvents = new List<ExceptionEvent>();
-        displayDate = DateTime.Now.Date.AddHours(8).AddMinutes(50);
-        minDateTime = DateTime.Now.Date.AddMonths(-3);
-        maxDateTime = DateTime.Now.AddMonths(3);
+        events = new ObservableCollection<EventViewModel>();
+        displayDate = DateTime.Today.FirstSecondOfDate();
+        minDateTime = displayDate.AddDays(-DaysInThePast);
+        maxDateTime = displayDate.AddDays(DaysInTheFuture);
 
-        WeakReferenceMessenger.Default.Register<EventInsertOrUpdateMessage>(this, async (r, m) =>
+        WeakReferenceMessenger.Default.Register<EventInsertOrUpdateMessage>(this, (r, m) =>
         {
             if (m != null && m.Value != null)
             {
                 var thisEvent = m.Value as EventViewModel;
                 if (thisEvent != null)
                 {
-                    await SaveEventAsync(m.Value as EventViewModel, m.IsEditingSeries).ConfigureAwait(false);
+                    Task.Run(async () =>
+                    {
+                        await SaveEventAsync(new EventViewModel(thisEvent), m.IsEditingSeries).ConfigureAwait(false);
+                    });
                 }
-            }
-            else
-            {
-                await Task.CompletedTask;
             }
         });
 
-        WeakReferenceMessenger.Default.Register<EventCompleteMessage>(this, async (r, m) =>
+        WeakReferenceMessenger.Default.Register<EventCompleteMessage>(this, (r, m) =>
         {
             if (m != null)
             {
                 var itemIndex = FindItemIndex((int)m.Value);
                 if (itemIndex >= 0)
                 {
-                    var theEvent = Events[itemIndex];
-                    theEvent.IsFinished = true;
-                    theEvent.FinishedTime = DateTime.Now;
-                    await databaseContext.UpdateItemAsync<Event>(theEvent.ToEvent()).ConfigureAwait(false);
+                    var theEvent = this.allEvents[itemIndex];
+
+                    Task.Run(async () =>
+                    {
+                        theEvent.IsFinished = true;
+                        theEvent.FinishedTime = DateTime.Now;
+                        await databaseContext.UpdateItemAsync<Event>(theEvent.ToEvent()).ConfigureAwait(false);
+                    });
                 }
             }
         });
@@ -111,16 +136,19 @@ public partial class EventListViewModel : BaseViewModel
 
     public async Task LoadEventsAsync()
     {
-        if (!hasLoaded)
+        if (!this.hasLoaded)
         {
-            hasLoaded = true;
-            var today = DateTime.Now.Date;
-            var firstDay = today.AddDays(-DaysInThePast);
-            var lastDay = today.AddDays(DaysInTheFuture);
+            await Task.Run(async () =>
+            {
+                this.hasLoaded = true;
+                var today = DateTime.Today.FirstSecondOfDate();
+                this.minDateTime = today.AddDays(-DaysInThePast);
+                this.maxDateTime = today.AddDays(DaysInTheFuture);
 
-            await GetEventsAsync(firstDay, lastDay, true);
+                await GetEventsAsync(this.minDateTime, this.maxDateTime, true).ConfigureAwait(false);
 
-            TodayEvent();
+                TodayEvent();
+            }).ConfigureAwait(false);
         }
     }
 
@@ -130,11 +158,10 @@ public partial class EventListViewModel : BaseViewModel
         var navigationParameter = new Dictionary<string, object>
         {
             {"OperatingEvent", new EventViewModel()},
-            {"DialogTitle", "Create Task" },
-            {"IsEditingSeries", true }
+            {"SeriesViewModel", new SeriesViewModel{ IsEditingSeries = true, ShowEditSeries = false}}
         };
 
-        await Shell.Current.GoToAsync($"//MainPage/EventDetailPage", navigationParameter);
+        await Shell.Current.GoToAsync($"//MainPage/EventDetailPage", navigationParameter).ConfigureAwait(false);
     }
 
     [RelayCommand]
@@ -142,11 +169,7 @@ public partial class EventListViewModel : BaseViewModel
     {
         if (this.ListView != null)
         {
-            var todayIndex = FindFirstItemOfDate(DateTime.Today);
-            if (todayIndex > 0 && todayIndex < this.Events.Count)
-            {
-                this.ListView.ScrollTo(this.Events[todayIndex], ScrollToPosition.MakeVisible);
-            }
+            AdjustViewWindow(DateTime.Today.FirstSecondOfDate(), Operations.Today);
         }
     }
 
@@ -170,7 +193,7 @@ public partial class EventListViewModel : BaseViewModel
                 OperatingEvent.FinishedTime = null;
             }
 
-            await UpdateInstanceStatus(OperatingEvent);
+            await UpdateInstanceStatusAsync(OperatingEvent).ConfigureAwait(false);
 
             OperatingEvent = null;
         }
@@ -198,7 +221,7 @@ public partial class EventListViewModel : BaseViewModel
                 {"SelectedSecon", timeSpan.Seconds }
             };
 
-            await Shell.Current.GoToAsync($"//MainPage/TaskTimerPage", navigationParameter);
+            await Shell.Current.GoToAsync($"//MainPage/TaskTimerPage", navigationParameter).ConfigureAwait(false);
         }
     }
 
@@ -215,32 +238,10 @@ public partial class EventListViewModel : BaseViewModel
             var navigationParameter = new Dictionary<string, object>
             {
                 {"OperatingEvent", new EventViewModel(OperatingEvent)},
-                {"DialogTitle", "Update Task" },
-                {"IsEditingSeries", false }
+                {"SeriesViewModel", new SeriesViewModel{ IsEditingSeries = false, ShowEditSeries = OperatingEvent.IsRecurring} }
             };
 
-            await Shell.Current.GoToAsync($"//MainPage/EventDetailPage", navigationParameter);
-        }
-    }
-
-    [RelayCommand]
-    private async Task EditEventSeries(Object obj)
-    {
-        OperatingEvent = (obj as EventViewModel);
-        if (OperatingEvent == null)
-        {
-            await Task.CompletedTask;
-        }
-        else
-        {
-            var navigationParameter = new Dictionary<string, object>
-            {
-                {"OperatingEvent", new EventViewModel(OperatingEvent)},
-                {"DialogTitle", "Update Task" },
-                {"IsEditingSeries", OperatingEvent.IsRecurring }
-            };
-
-            await Shell.Current.GoToAsync($"//MainPage/EventDetailPage", navigationParameter);
+            await Shell.Current.GoToAsync($"//MainPage/EventDetailPage", navigationParameter).ConfigureAwait(false);
         }
     }
 
@@ -256,32 +257,26 @@ public partial class EventListViewModel : BaseViewModel
                 /// 
                 // Add exception event
                 ExceptionEvent exceptionEvent = new ExceptionEvent { EventId = OperatingEvent.Id, ExceptionTime = OperatingEvent.Date.ChangeTime(OperatingEvent.From) };
-                AddExceptionEvent(exceptionEvent);
+                await AddExceptionEventAsync(exceptionEvent).ConfigureAwait(false);
 
-                Events.Remove(OperatingEvent);
+                this.allEvents.Remove(OperatingEvent);
             }
             else
             {
                 RemoveAlert(OperatingEvent);
 
-                await ExecuteAsync(async () =>
+                var id = OperatingEvent.Id;
+                if (await databaseContext.DeleteItemByKeyAsync<Event>(id).ConfigureAwait(false))
                 {
-                    var id = OperatingEvent.Id;
-                    if (await databaseContext.DeleteItemByKeyAsync<Event>(id))
-                    {
-                        lock (syncEvents)
-                        {
-                            RemoveAllEvents(id);
-                        }
-                    }
-                    else
-                    {
-                        await Shell.Current.DisplayAlert("Delete Error", "Event was not deleted", "Ok");
-                    }
-                });
+                    RemoveAllEvents(id);
+                }
+                else
+                {
+                    await Shell.Current.DisplayAlert("Delete Error", "Event was not deleted", "Ok").ConfigureAwait(false);
+                }
             }
 
-            OperatingEvent = null;
+            AdjustViewWindow(OperatingEvent.StartTime, Operations.Delete);
         }
         else
         {
@@ -297,28 +292,22 @@ public partial class EventListViewModel : BaseViewModel
         {
             RemoveAlert(OperatingEvent);
 
-            await ExecuteAsync(async () =>
+            var id = OperatingEvent.Id;
+            if (await databaseContext.DeleteItemByKeyAsync<Event>(id).ConfigureAwait(false))
             {
-                var id = OperatingEvent.Id;
-                if (await databaseContext.DeleteItemByKeyAsync<Event>(id))
-                {
-                    lock (syncEvents)
-                    {
-                        RemoveAllEvents(id);                        
-                    }
-                }
-                else
-                {
-                    await Shell.Current.DisplayAlert("Delete Error", "Event was not deleted", "Ok");
-                }
+                RemoveAllEvents(id);
+            }
+            else
+            {
+                await Shell.Current.DisplayAlert("Delete Error", "Event was not deleted", "Ok").ConfigureAwait(false);
+            }
 
-                if (OperatingEvent.IsRecurring)
-                {
-                    RemoveExceptionEvents(id);
-                }
-            });
+            if (OperatingEvent.IsRecurring)
+            {
+                await RemoveExceptionEventsAsync(id).ConfigureAwait(false);
+            }
 
-            OperatingEvent = null;
+            AdjustViewWindow(OperatingEvent.StartTime, Operations.Delete);
         }
         else
         {
@@ -336,35 +325,77 @@ public partial class EventListViewModel : BaseViewModel
             var tappedEvent = tappedItem.DataItem as EventViewModel;
             if (tappedEvent != null)
             {
-                tappedEvent.IsNotesVisible = !tappedEvent.IsNotesVisible;
+                tappedEvent.IsNotesVisible = (!tappedEvent.IsNotesVisible) && !string.IsNullOrWhiteSpace(tappedEvent.Notes);
             }
         }
     }
 
-    private void AddAlert(EventViewModel operatingEvent)
+    public void LoadMoreItems()
+    {
+        if (this.allEvents.Count > this.maxDisplayItems)
+        {
+            AdjustViewWindow(DateTime.Now, Operations.LoadMoreBottom);
+        }
+    }
+
+    public void LoadMoreFromTop()
+    {
+        if (this.allEvents.Count > this.maxDisplayItems && this.startViewIndex > 0)
+        {
+            AdjustViewWindow(DateTime.Now, Operations.LoadMoreTop);
+        }
+    }
+    private async Task AddAlertAsync(EventViewModel operatingEvent)
     {
         if (operatingEvent.AlertType == AlertType.NoAlert)
         {
             return;
         }
 
+        try
+        {
+            if (await LocalNotificationCenter.Current.AreNotificationsEnabled().ConfigureAwait(false) == false)
+            {
+                bool allowed = await LocalNotificationCenter.Current.RequestNotificationPermission(new NotificationPermission()).ConfigureAwait(false);
+                if (!allowed)
+                {
+                    return;
+                }
+            }
+        }
+        catch (Exception)
+        {
+            return;
+        }
+
         if (operatingEvent.RecurrenceFrequencyId == 0)
         {
-            var notificationTime = operatingEvent.Date + operatingEvent.From;
+            var notificationTime = operatingEvent.Date.ChangeTime(operatingEvent.From);
 
             var notification = new NotificationRequest
             {
                 NotificationId = operatingEvent.Id,
-                CategoryType = operatingEvent.AlertType == AlertType.Alarm ? NotificationCategoryType.Alarm : NotificationCategoryType.Reminder,
+
+                CategoryType = NotificationCategoryType.Reminder,
                 Title = operatingEvent.EventName,
                 Description = operatingEvent.Notes,
                 Schedule = new NotificationRequestSchedule
                 {
                     NotifyTime = notificationTime,
+                    NotifyAutoCancelTime = DateTime.Now.AddSeconds(25),
                     RepeatType = NotificationRepeat.No
                 }
             };
-            LocalNotificationCenter.Current.Show(notification);
+
+            if (operatingEvent.AlertType == AlertType.Alarm)
+            {
+                notification.CategoryType = NotificationCategoryType.Alarm;
+                notification.Sound = "clock.aiff";
+                notification.Silent = false;
+                notification.iOS = new Plugin.LocalNotification.iOSOption.iOSOptions{ PlayForegroundSound = true };
+            }
+
+            await LocalNotificationCenter.Current.Show(notification).ConfigureAwait(false);
         }
         else
         {
@@ -377,16 +408,26 @@ public partial class EventListViewModel : BaseViewModel
                     var notification = new NotificationRequest
                     {
                         NotificationId = operatingEvent.Id + (1 << (24 + i)),
-                        CategoryType = operatingEvent.AlertType == AlertType.Alarm ? NotificationCategoryType.Alarm : NotificationCategoryType.Reminder,
+                        CategoryType = NotificationCategoryType.Reminder,
                         Title = operatingEvent.EventName,
                         Description = operatingEvent.Notes,
                         Schedule = new NotificationRequestSchedule
                         {
                             NotifyTime = notificationTime.AddDays(i),
+                            NotifyAutoCancelTime = DateTime.Now.AddSeconds(25),
                             RepeatType = NotificationRepeat.Weekly
                         }
                     };
-                    LocalNotificationCenter.Current.Show(notification);
+
+                    if (operatingEvent.AlertType == AlertType.Alarm)
+                    {
+                        notification.CategoryType = NotificationCategoryType.Alarm;
+                        notification.Sound = "clock.aiff";
+                        notification.Silent = false;
+                        notification.iOS = new Plugin.LocalNotification.iOSOption.iOSOptions{ PlayForegroundSound = true };
+                    }
+
+                    await LocalNotificationCenter.Current.Show(notification).ConfigureAwait(false);
                 }
             }
         }
@@ -399,7 +440,7 @@ public partial class EventListViewModel : BaseViewModel
             var notificationIdList = new List<int>();
             if (operatingEvent.RecurrenceFrequencyId == 0)
             {
-                notificationIdList.Add(operatingEvent.Id + (1 << 24));
+                notificationIdList.Add(operatingEvent.Id);
             }
             else
             {
@@ -407,12 +448,12 @@ public partial class EventListViewModel : BaseViewModel
                 {
                     if ((operatingEvent.RecurrencePattern & (1 << i)) != 0)
                     {
-                        notificationIdList.Add(operatingEvent.Id + (1 << 24));
+                        notificationIdList.Add(operatingEvent.Id + (1 << (24 + i)));
                     }
                 }
             }
 
-            LocalNotificationCenter.Current.Clear(notificationIdList.ToArray());
+            LocalNotificationCenter.Current.Cancel(notificationIdList.ToArray());
         }
         catch(Exception)
         {
@@ -425,20 +466,13 @@ public partial class EventListViewModel : BaseViewModel
         {
             if (operatingEvent.Id == 0)
             {
-                operatingEvent.CreatedTime = DateTime.Now;
-
                 // Create event
                 var dbEvent = operatingEvent.ToEvent(); 
-                if (operatingEvent.IsRecurring)
-                {
-                    dbEvent.To = dbEvent.To.AddYears(1);
-                }
-
-                var result = await databaseContext.AddItemAsync<Event>(dbEvent);
+                var result = await databaseContext.AddItemAsync<Event>(dbEvent).ConfigureAwait(false);
                 if (result)
                 {
                     operatingEvent.Id = dbEvent.Id;
-                    AddAlert(operatingEvent);
+                    await AddAlertAsync(operatingEvent).ConfigureAwait(false);
                     if (operatingEvent.IsRecurring)
                     {
                         InsertEvent(operatingEvent, operatingEvent.StartTime.FirstSecondOfDate(), DateTime.Today.AddDays(DaysInTheFuture));
@@ -448,6 +482,8 @@ public partial class EventListViewModel : BaseViewModel
                         InsertSingleEvent(operatingEvent);
                     }
                 }
+
+                AdjustViewWindow(operatingEvent.StartTime, Operations.Insert);
             }
             else
             {
@@ -458,12 +494,14 @@ public partial class EventListViewModel : BaseViewModel
 
                 if (isEditingSerires)
                 {
-                    UpdateSeries(operatingEvent, OperatingEvent);
+                    await UpdateSeriesAsync(operatingEvent, OperatingEvent).ConfigureAwait(false);
                 }
                 else
                 {
-                    UpdateInstance(operatingEvent, OperatingEvent);
+                    await UpdateInstanceAsync(operatingEvent, OperatingEvent).ConfigureAwait(false);
                 }
+
+                AdjustViewWindow(operatingEvent.StartTime, Operations.Update);
             }
         }
         catch (Exception)
@@ -471,13 +509,14 @@ public partial class EventListViewModel : BaseViewModel
         }
     }
 
-    private async Task UpdateInstanceStatus(EventViewModel updatedOperatingEvent)
+    private async Task UpdateInstanceStatusAsync(EventViewModel updatedOperatingEvent)
     {
         if (updatedOperatingEvent.IsRecurring)
         {
             // Add exception event
             ExceptionEvent exceptionEvent = new ExceptionEvent { EventId = updatedOperatingEvent.Id, ExceptionTime = updatedOperatingEvent.Date.ChangeTime(updatedOperatingEvent.From) };
-            AddExceptionEvent(exceptionEvent);
+            await AddExceptionEventAsync(exceptionEvent).ConfigureAwait(false);
+
 
             EventViewModel newInstance = new EventViewModel(updatedOperatingEvent);
             newInstance.RecurrenceFrequencyId = 0;
@@ -490,15 +529,17 @@ public partial class EventListViewModel : BaseViewModel
             newInstance.StartTime = updatedOperatingEvent.Date.ChangeTime(updatedOperatingEvent.From);
             newInstance.EndTime = updatedOperatingEvent.Date.ChangeTime(updatedOperatingEvent.To);
 
-            await SaveEventAsync(newInstance, false);
+            allEvents.Remove(updatedOperatingEvent);
+
+            await SaveEventAsync(newInstance, false).ConfigureAwait(false);
         }
         else
         {
-            await databaseContext.UpdateItemAsync<Event>(updatedOperatingEvent.ToEvent());
+            await databaseContext.UpdateItemAsync<Event>(updatedOperatingEvent.ToEvent()).ConfigureAwait(false);
         }
     }
 
-    private async Task UpdateInstance(EventViewModel updatedOperatingEvent, EventViewModel oldEvent)
+    private async Task UpdateInstanceAsync(EventViewModel updatedOperatingEvent, EventViewModel oldEvent)
     {
         if (oldEvent.AlertType != AlertType.NoAlert)
         {
@@ -509,7 +550,7 @@ public partial class EventListViewModel : BaseViewModel
         {
             // Add exception event
             ExceptionEvent exceptionEvent = new ExceptionEvent { EventId = updatedOperatingEvent.Id, ExceptionTime = oldEvent.Date.ChangeTime(oldEvent.From) };
-            AddExceptionEvent(exceptionEvent);
+            await AddExceptionEventAsync(exceptionEvent).ConfigureAwait(false);
 
             EventViewModel newInstance = new EventViewModel(updatedOperatingEvent);
             newInstance.RecurrenceFrequencyId = 0;
@@ -520,20 +561,20 @@ public partial class EventListViewModel : BaseViewModel
             newInstance.LinkedId = updatedOperatingEvent.Id;
             newInstance.StartTime = updatedOperatingEvent.Date.ChangeTime(updatedOperatingEvent.From);
             newInstance.EndTime = updatedOperatingEvent.Date.ChangeTime(updatedOperatingEvent.To);
-            Events.Remove(oldEvent);
+            allEvents.Remove(oldEvent);
 
-            await SaveEventAsync(newInstance, false);
+            await SaveEventAsync(newInstance, false).ConfigureAwait(false);
         }
         else
         {
             if (updatedOperatingEvent.AlertType != AlertType.NoAlert)
             {
-                AddAlert(updatedOperatingEvent);
+                await AddAlertAsync(updatedOperatingEvent).ConfigureAwait(false);
             }
 
-            Events.Remove(oldEvent);
+            this.allEvents.Remove(oldEvent);
 
-            await databaseContext.UpdateItemAsync<Event>(updatedOperatingEvent.ToEvent());
+            await databaseContext.UpdateItemAsync<Event>(updatedOperatingEvent.ToEvent()).ConfigureAwait(false);
 
             InsertSingleEvent(updatedOperatingEvent);
         }
@@ -541,7 +582,102 @@ public partial class EventListViewModel : BaseViewModel
         OperatingEvent = null;
     }
 
-    private async Task UpdateSeries(EventViewModel updatedOperatingEvent, EventViewModel oldEvent)
+    private void AdjustViewWindow(DateTime startTime, Operations operation)
+    {
+        switch (operation)
+        {
+            case Operations.Insert:
+            case Operations.Update:
+            case Operations.Delete:
+                {
+                    var firstItemIndex = FindFirstItemOfDate(startTime);
+
+                    var lastItemIndex = Math.Min(firstItemIndex + maxDisplayItems - 1, this.allEvents.Count - 1);
+                    if (lastItemIndex - firstItemIndex < maxDisplayItems)
+                    {
+                        this.startViewIndex = Math.Max(0, lastItemIndex + 1 - this.maxDisplayItems);
+                        this.endViewIndex = lastItemIndex;
+                    }
+                    else
+                    {
+                        this.startViewIndex = firstItemIndex;
+                        this.endViewIndex = lastItemIndex;
+                    }
+                }
+                break;
+            case Operations.Today:
+                {
+                    var firstViewItemIndex = FindFirstItemOfDate(startTime);
+                    var firstItemIndex = firstViewItemIndex;
+                    if (firstViewItemIndex > 0)
+                    {
+                        firstItemIndex = Math.Max(0, firstViewItemIndex - 3);
+                    }
+
+                    var lastItemIndex = Math.Min(firstItemIndex + maxDisplayItems - 1, this.allEvents.Count - 1);
+                    if (lastItemIndex - firstItemIndex < maxDisplayItems)
+                    {
+                        this.startViewIndex = Math.Max(0, lastItemIndex + 1 - this.maxDisplayItems);
+                        this.endViewIndex = lastItemIndex;
+                    }
+                    else
+                    {
+                        this.startViewIndex = firstItemIndex;
+                        this.endViewIndex = lastItemIndex;
+                    }
+                }
+                break;
+            case Operations.LoadMoreTop:
+                {
+                    if (this.startViewIndex == 0)
+                    {
+                        return;
+                    }
+                    this.startViewIndex -= this.maxDisplayItems / 3;
+                    if (this.startViewIndex < 0)
+                    {
+                        this.startViewIndex = 0;
+                    }
+                    this.endViewIndex = Math.Min(this.startViewIndex + this.maxDisplayItems - 1, this.allEvents.Count - 1);
+                }
+                break;
+            case Operations.LoadMoreBottom:
+                {
+                    if (this.endViewIndex == this.allEvents.Count - 1)
+                    {
+                        return;
+                    }
+                    this.endViewIndex += this.maxDisplayItems / 3;
+                    if (this.endViewIndex > this.allEvents.Count - 1)
+                    {
+                        this.endViewIndex = this.allEvents.Count - 1;
+                    }
+                    this.startViewIndex = this.endViewIndex - this.maxDisplayItems;
+                    if (this.startViewIndex < 0)
+                    {
+                        this.startViewIndex = 0;
+                    }
+                }
+                break;
+        }
+
+        var newEvents = new ObservableCollection<EventViewModel>();
+        for (int i = this.startViewIndex; i <= this.endViewIndex; i++)
+        {
+            newEvents.Add(this.allEvents[i]);
+        }
+
+        OperatingEvent = null;
+
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            this.ListView.BeginInit();
+            this.Events = newEvents;
+            this.ListView.EndInit();
+        });
+    }
+
+    private async Task UpdateSeriesAsync(EventViewModel updatedOperatingEvent, EventViewModel oldEvent)
     {
         if (oldEvent.AlertType != AlertType.NoAlert)
         {
@@ -550,8 +686,15 @@ public partial class EventListViewModel : BaseViewModel
 
         if (oldEvent.IsRecurring)
         {
-            var lastEvent = LastEventInstanceBefore(oldEvent.Id, DateTime.Now);
-            RemoveAllEventsAfter(oldEvent.Id, DateTime.Now);
+
+            var lastEventEndTime = oldEvent.Date.ChangeTime(oldEvent.From);
+            if (lastEventEndTime < DateTime.Now)
+            {
+                lastEventEndTime = DateTime.Now;
+            }
+
+            var lastEvent = LastEventInstanceBefore(oldEvent.Id, lastEventEndTime);
+            RemoveAllEventsAfter(oldEvent.Id, lastEventEndTime);
 
             // Update the old events
             if (lastEvent != null)
@@ -560,35 +703,31 @@ public partial class EventListViewModel : BaseViewModel
                 var lastRecurringEvent = new EventViewModel(lastEvent);
                 lastRecurringEvent.EndTime = lastEvent.Date.ChangeTime(lastEvent.To);
                 lastRecurringEvent.Date = lastEvent.Date;
-                await databaseContext.UpdateItemAsync<Event>(lastRecurringEvent.ToEvent());
+                await databaseContext.UpdateItemAsync<Event>(lastRecurringEvent.ToEvent()).ConfigureAwait(false);
             }
             else
             {
-                await databaseContext.DeleteItemByKeyAsync<Event>(oldEvent.Id);
+                await databaseContext.DeleteItemByKeyAsync<Event>(oldEvent.Id).ConfigureAwait(false);
             }
 
             updatedOperatingEvent.Id = 0;
-            updatedOperatingEvent.StartTime = updatedOperatingEvent.Date.ChangeTime(updatedOperatingEvent.From);
-            updatedOperatingEvent.EndTime = updatedOperatingEvent.Date.ChangeTime(updatedOperatingEvent.To); // SaveEventAsync will add years
 
-            await SaveEventAsync(updatedOperatingEvent, true);
+            await SaveEventAsync(updatedOperatingEvent, true).ConfigureAwait(false);
             return;
         }
         else
         {
-            Events.Remove(oldEvent);
+            this.allEvents.Remove(oldEvent);
         }
 
         if (updatedOperatingEvent.AlertType != AlertType.NoAlert)
         {
-            AddAlert(updatedOperatingEvent);
+            await AddAlertAsync(updatedOperatingEvent).ConfigureAwait(false);
         }
 
-        await databaseContext.UpdateItemAsync<Event>(updatedOperatingEvent.ToEvent());
+        await databaseContext.UpdateItemAsync<Event>(updatedOperatingEvent.ToEvent()).ConfigureAwait(false);
 
         InsertEvent(updatedOperatingEvent, DateTime.Now, DateTime.Now.AddDays(DaysInTheFuture));
-
-        OperatingEvent = null;
     }
 
     private async Task ExecuteAsync(Func<Task> operation)
@@ -633,21 +772,17 @@ public partial class EventListViewModel : BaseViewModel
 
     public async Task GetEventsAsync(DateTime start, DateTime end, bool replace)
     {
-        GetExceptionEvents(start, end);
+        await GetExceptionEventsAsync(start, end).ConfigureAwait(false);
 
-        var table = await databaseContext.GetTableAsync<Event>();
-        var eventRecords = await table.Where(item => item.From < end && item.To >= start).OrderBy(item => item.From).ToListAsync();
+        var table = await databaseContext.GetTableAsync<Event>().ConfigureAwait(false);
+        var eventRecords = await table.Where(item => item.From < end && item.To >= start).OrderBy(item => item.From).ToListAsync().ConfigureAwait(false);
 
         lock (syncEvents)
         {
-            if (replace)
-            {
-                Events = new ObservableCollection<EventViewModel>();
-            }
+            this.allEvents.Clear();
+
             if (eventRecords is not null && eventRecords.Any())
             {
-                var events = new List<EventViewModel>();
-
                 foreach (var theEvent in eventRecords)
                 {
                     if (theEvent.RecurrenceFrequencyId != 0)
@@ -659,22 +794,23 @@ public partial class EventListViewModel : BaseViewModel
                         {
                             for (int i = 0; i < 7; i++)
                             {
+                                var currentDate = firstStart.AddDays(i);
+                                if (currentDate < theEvent.From.FirstSecondOfDate() || currentDate < start)
+                                {
+                                    continue;
+                                }
+                                if (currentDate > end)
+                                {
+                                    break;
+                                }
                                 if (((1 << i) & theEvent.RecurrencePattern) != 0)
                                 {
-                                    var currentDate = firstStart.AddDays(i);
-                                    if (currentDate <= end)
+                                    var currentTime = theEvent.From.ChangeDate(currentDate);
+                                    var exceptionEvent = FindExceptionEvent(currentTime, theEvent.Id);
+                                    if (exceptionEvent == null)
                                     {
-                                        var currentTime = theEvent.From.ChangeDate(currentDate);
-                                        var exceptionEvent = FindExceptionEvent(currentTime, theEvent.Id);
-                                        if (exceptionEvent == null)
-                                        {
-                                            var newInstance = new EventViewModel(theEvent, currentTime);
-                                            events.Add(newInstance);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        break;
+                                        var newInstance = new EventViewModel(theEvent, currentTime);
+                                        this.allEvents.Add(newInstance);
                                     }
                                 }
                             }
@@ -684,18 +820,16 @@ public partial class EventListViewModel : BaseViewModel
                     }
                     else
                     {
-                        events.Add(new EventViewModel(theEvent));
+                        this.allEvents.Add(new EventViewModel(theEvent));
                     }
                 }
 
-                events.Sort();
-
-                Events = new ObservableCollection<EventViewModel>(events);
+                this.allEvents.Sort();
             }
         }
     }
 
-    private async Task GetExceptionEvents(DateTime start, DateTime end)
+    private async Task GetExceptionEventsAsync(DateTime start, DateTime end)
     {
         var table = await databaseContext.GetTableAsync<ExceptionEvent>();
         this.exceptionEvents = await table.Where(item => item.ExceptionTime >= start && item.ExceptionTime < end).ToListAsync();
@@ -727,36 +861,30 @@ public partial class EventListViewModel : BaseViewModel
         return null;
     }
 
-    private async Task AddExceptionEvent(ExceptionEvent exceptionEvent)
+    private async Task AddExceptionEventAsync(ExceptionEvent exceptionEvent)
     {
         exceptionEvent.Id = 0;
-        var result = await databaseContext.AddItemAsync<ExceptionEvent>(exceptionEvent);
+        var result = await databaseContext.AddItemAsync<ExceptionEvent>(exceptionEvent).ConfigureAwait(false);
         if (result)
         {
             this.exceptionEvents.Add(exceptionEvent);
         }
     }
 
-    private async Task RemoveExceptionEvent(ExceptionEvent exceptionEvent)
+    private async Task RemoveExceptionEventAsync(ExceptionEvent exceptionEvent)
     {
-        await ExecuteAsync(async () =>
+        var id = exceptionEvent.Id;
+        if (await databaseContext.DeleteItemByKeyAsync<ExceptionEvent>(id).ConfigureAwait(false))
         {
-            var id = exceptionEvent.Id;
-            if (await databaseContext.DeleteItemByKeyAsync<ExceptionEvent>(id))
-            {
-                lock (syncEvents)
-                {
-                    this.exceptionEvents.Remove(exceptionEvent);
-                }
-            }
-            else
-            {
-                await Shell.Current.DisplayAlert("Delete Error", "Event was not deleted", "Ok");
-            }
-        });
+            this.exceptionEvents.Remove(exceptionEvent);
+        }
+        else
+        {
+            await Shell.Current.DisplayAlert("Delete Error", "Event was not deleted", "Ok");
+        }
     }
 
-    private async Task RemoveExceptionEvents(int eventId)
+    private async Task RemoveExceptionEventsAsync(int eventId)
     {
         List<ExceptionEvent> exceptionEventsToRemove = new List<ExceptionEvent>();
 
@@ -765,7 +893,7 @@ public partial class EventListViewModel : BaseViewModel
             if (exceptionEvent.EventId == eventId)
             {
                 exceptionEventsToRemove.Add(exceptionEvent);
-                await databaseContext.DeleteItemByKeyAsync<ExceptionEvent>(exceptionEvent.Id);
+                await databaseContext.DeleteItemByKeyAsync<ExceptionEvent>(exceptionEvent.Id).ConfigureAwait(false);
             }
         }
 
@@ -774,24 +902,6 @@ public partial class EventListViewModel : BaseViewModel
             this.exceptionEvents.Remove(exceptionEventToRemove);
         }
     }
-
-    //public async Task GetTodayEventsAsync()
-    //{
-    //    var today = DateTime.Now.Date;
-    //    var tomorrow = today.AddDays(1);
-
-    //    await GetEventsAsync(today, tomorrow);
-    //}
-
-    //public async Task GetWeekEventsAsync()
-    //{
-    //    var today = DateTime.Now.Date;
-
-    //    var sunday = today.CurrentWeek(DayOfWeek.Sunday);
-    //    var nextSunday = today.NextWeek(DayOfWeek.Sunday);
-
-    //    await GetEventsAsync(sunday, nextSunday);
-    //}
 
     private void InsertEvent(EventViewModel theEvent, DateTime start, DateTime end)
     {
@@ -829,14 +939,14 @@ public partial class EventListViewModel : BaseViewModel
 
     private void InsertSingleEvent(EventViewModel theEvent)
     {
-        int eventCount = this.Events.Count;
+        int eventCount = this.allEvents.Count;
         int lo = 0;
         int hi = eventCount - 1;
 
         while (lo < hi)
         {
             int m = (hi + lo) / 2;  // this might overflow; be careful.
-            if (this.Events[m].Date < theEvent.Date || (this.Events[m].Date == theEvent.Date && this.Events[m].From < theEvent.From))
+            if (this.allEvents[m].Date < theEvent.Date || (this.allEvents[m].Date == theEvent.Date && this.allEvents[m].From < theEvent.From))
             {
                 lo = m + 1;
             }
@@ -848,16 +958,16 @@ public partial class EventListViewModel : BaseViewModel
 
         if (eventCount > 0)
         {
-            if (this.Events[lo].Date < theEvent.Date || (this.Events[lo].Date == theEvent.Date && this.Events[lo].From < theEvent.From))
+            if (this.allEvents[lo].Date < theEvent.Date || (this.allEvents[lo].Date == theEvent.Date && this.allEvents[lo].From < theEvent.From))
             {
                 lo++;
             }
         }
 
-        Events.Insert(lo, theEvent);
+        this.allEvents.Insert(lo, theEvent);
     }
 
-    private int FindFirstItemOfDate(DateTime targetDate)
+    private int FindFirstViewItemOfDate(DateTime targetDate)
     {
         var eventCount = this.Events.Count;
         int lo = 0;
@@ -866,7 +976,7 @@ public partial class EventListViewModel : BaseViewModel
         while (lo < hi)
         {
             int m = (hi + lo) / 2;  // this might overflow; be careful.
-            if (targetDate <= this.Events[m].Date)
+            if (targetDate <= this.Events[m].Date + this.Events[m].From)
             {
                 hi = m;
             }
@@ -876,25 +986,60 @@ public partial class EventListViewModel : BaseViewModel
             }
         }
 
-        if (lo < eventCount && this.Events[lo].Date < targetDate)
+        if (lo == eventCount)
         {
-            lo++;
+            lo = eventCount - 1;
         }
+        if (lo < 0)
+        {
+            lo = 0;
+        }
+
+        return lo;
+    }
+
+    private int FindFirstItemOfDate(DateTime targetDate)
+    {
+        var eventCount = this.allEvents.Count;
+        int lo = 0;
+        int hi = eventCount;
+
+        while (lo < hi)
+        {
+            int m = (hi + lo) / 2;  // this might overflow; be careful.
+            if (targetDate <= this.allEvents[m].Date + this.allEvents[m].From)
+            {
+                hi = m;
+            }
+            else
+            {
+                lo = m + 1;
+            }
+        }
+
+        if (lo == eventCount)
+        {
+            lo = eventCount - 1;
+        }
+        if (lo < 0)
+        {
+            lo = 0;
+        }
+
+        //if (lo < eventCount && this.allEvents[lo].Date + this.allEvents[lo].From < targetDate)
+        //{
+        //    lo++;
+        //}
 
         return lo;
     }
 
     private int FindItemIndex(int id)
     {
-        if (Events == null)
-        {
-            return -1;
-        }
-
-        int eventCount = Events.Count;
+        int eventCount = this.allEvents.Count;
         for (int i = 0; i < eventCount; ++i)
         {
-            if (Events[i].Id == id)
+            if (this.allEvents[i].Id == id)
             {
                 return i;
             }
@@ -905,24 +1050,24 @@ public partial class EventListViewModel : BaseViewModel
 
     private void RemoveAllEvents(int id)
     {
-        for (int i = Events.Count - 1; i >= 0; i--)
+        for (int i = this.allEvents.Count - 1; i >= 0; i--)
         {
-            var current = Events[i];
+            var current = this.allEvents[i];
             if (current.Id == id)
             {
-                Events.RemoveAt(i);
+                this.allEvents.RemoveAt(i);
             }
         }
     }
 
     private void RemoveAllEventsAfter(int id, DateTime now)
     {
-        for (int i = Events.Count - 1; i >= 0; i--)
+        for (int i = this.allEvents.Count - 1; i >= 0; i--)
         {
-            var current = Events[i];
+            var current = this.allEvents[i];
             if (current.Id == id && current.Date >= now.Date)
             {
-                Events.RemoveAt(i);
+                this.allEvents.RemoveAt(i);
             }
         }
     }
@@ -930,9 +1075,9 @@ public partial class EventListViewModel : BaseViewModel
     private EventViewModel LastEventInstanceBefore(int id, DateTime before)
     {
         EventViewModel lastEvent = null;
-        for (int i = 0; i < Events.Count; i++)
+        for (int i = 0; i < this.allEvents.Count; i++)
         {
-            var current = Events[i];
+            var current = this.allEvents[i];
             if (current.Id == id && current.Date < before)
             {
                 if (lastEvent == null || lastEvent.Date < current.Date)

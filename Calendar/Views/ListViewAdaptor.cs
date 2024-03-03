@@ -11,7 +11,20 @@ public class ListViewAdaptor : IListView
     {
         _listView = listView;
     }
-        public void ScrollTo(Object obj, ScrollToPosition position)
+
+
+    public bool IsLazyLoading
+    {
+        get { return _listView.IsLazyLoading; }
+        set { _listView.IsLazyLoading = value; }
+    }
+
+    public LoadMorePosition LoadMorePosition
+    {
+        get { return _listView.LoadMorePosition; }
+    }
+
+    public void ScrollTo(Object obj, ScrollToPosition position)
     {
         if (obj != null)
         {
@@ -21,5 +34,20 @@ public class ListViewAdaptor : IListView
                 _listView.ItemsLayout.ScrollToRowIndex(index, position, true);
             }
         }
+    }
+
+    public void ScrollToRowIndex(int row)
+    {
+        _listView.ItemsLayout.ScrollToRowIndex(row, true);
+    }
+
+    public void BeginInit()
+    {
+        _listView.DataSource.BeginInit();
+    }
+
+    public void EndInit()
+    {
+        _listView.DataSource.EndInit();
     }
 }

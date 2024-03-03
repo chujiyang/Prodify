@@ -34,6 +34,9 @@ public partial class EventViewModel : ObservableObject, IComparable<EventViewMod
     private TimeSpan to;
 
     [ObservableProperty]
+    private int duration;
+
+    [ObservableProperty]
     private DateTime startTime;
 
     [ObservableProperty]
@@ -103,6 +106,11 @@ public partial class EventViewModel : ObservableObject, IComparable<EventViewMod
     /// </summary>
     public DateTime? FinishedTime { get; set; }
 
+    public bool IsNewEvent
+    {
+        get { return Id == 0; }
+    }
+
     #endregion
 
     #region Constructor
@@ -116,6 +124,7 @@ public partial class EventViewModel : ObservableObject, IComparable<EventViewMod
         this.date = time.Date;
         this.from = time - date;
         this.to = this.From.Add(new TimeSpan(0, 30, 0));
+        this.duration = 30;
         this.eventName = string.Empty;
         this.isAllDay = false;
         this.notes = string.Empty;
@@ -150,6 +159,7 @@ public partial class EventViewModel : ObservableObject, IComparable<EventViewMod
         this.date = other.Date;
         this.from = other.From;
         this.to = other.To;
+        this.duration = other.Duration;
         this.eventName = other.EventName;
         this.isAllDay = false;
         this.notes = other.Notes;
@@ -177,6 +187,7 @@ public partial class EventViewModel : ObservableObject, IComparable<EventViewMod
         this.date = theEvent.From.ChangeDate(date);
         this.from = theEvent.From.GetTimeSpanInTime();
         this.to = theEvent.To.GetTimeSpanInTime();
+        this.duration = CalculateDuration();
         this.eventName = theEvent.EventName;
         this.isAllDay = theEvent.IsAllDay;
         this.notes = theEvent.Notes;
@@ -202,6 +213,7 @@ public partial class EventViewModel : ObservableObject, IComparable<EventViewMod
         this.date = theEvent.From.Date;
         this.from = theEvent.From.GetTimeSpanInTime();;
         this.to = theEvent.To.GetTimeSpanInTime();
+        this.duration = CalculateDuration();
         this.eventName = theEvent.EventName;
         this.isAllDay = theEvent.IsAllDay;
         this.notes = theEvent.Notes;
@@ -266,13 +278,22 @@ public partial class EventViewModel : ObservableObject, IComparable<EventViewMod
 
     public int CompareTo(EventViewModel other)
     {
-        int cmp = From.CompareTo(other.From);
+        int cmp = Date.CompareTo(other.Date);
         if (cmp == 0)
         {
-            cmp = To.CompareTo(other.To);
+            cmp = From.CompareTo(other.From);
+            if (cmp == 0)
+            {
+                cmp = To.CompareTo(other.To);
+            }
         }
 
         return cmp;
+    }
+
+    public int CalculateDuration()
+    {
+        return (1440 + (int)(this.To.TotalMinutes - this.From.TotalMinutes)) % 1440;
     }
 
     #endregion

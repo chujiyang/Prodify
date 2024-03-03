@@ -5,6 +5,12 @@ using System.Collections.ObjectModel;
 
 namespace Calendar.ViewModels;
 
+//public partial class RecurrencyItem : ObservableObject
+//{
+//    [ObservableProperty]
+//    string week;
+//}
+
 [QueryProperty("SelectedDaysOfWeek", "SelectedDaysOfWeek")]
 public partial class RecurrencySelectionViewModel : BaseViewModel
 {
@@ -19,8 +25,12 @@ public partial class RecurrencySelectionViewModel : BaseViewModel
             "Saturday"
         });
 
+    //[ObservableProperty]
+    //ObservableCollection<RecurrencyItem> daysOfWeek;
+
     [ObservableProperty]
     ObservableCollection<string> daysOfWeek;
+
 
     [ObservableProperty]
     ObservableCollection<object> selectedDaysOfWeek;
@@ -42,6 +52,17 @@ public partial class RecurrencySelectionViewModel : BaseViewModel
 
     public RecurrencySelectionViewModel()
     {
+        //daysOfWeek = new ObservableCollection<RecurrencyItem>(new[]
+        //{
+        //    new RecurrencyItem { Week = "Sunday" },
+        //    new RecurrencyItem { Week = "Monday" },
+        //    new RecurrencyItem { Week = "Tuesday" },
+        //    new RecurrencyItem { Week = "Wednesday" },
+        //    new RecurrencyItem { Week = "Thursday" },
+        //    new RecurrencyItem { Week = "Friday" },
+        //    new RecurrencyItem { Week = "Saturday" }
+        //});
+
         daysOfWeek = new ObservableCollection<string>(new[]
         {
             "Sunday",

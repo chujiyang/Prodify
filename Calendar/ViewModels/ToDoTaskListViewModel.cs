@@ -208,24 +208,10 @@ public partial class ToDoTaskListViewModel : BaseViewModel
         }
     }
 
-    public async Task OnItemDragging(Syncfusion.Maui.ListView.ItemDraggingEventArgs e)
+    public async Task OnItemDraggingAsync(Syncfusion.Maui.ListView.ItemDraggingEventArgs e)
     {
-        //if (e.Action == Syncfusion.Maui.ListView.DragAction.Start)
-        //{
-        //    this.NewTaskDescription = string.Format("New Index {0}: {1}, Old Index {2}:{3}\n", e.NewIndex, this.ToDoTasks[e.NewIndex].Description, e.OldIndex, this.ToDoTasks[e.OldIndex].Description);
-        //    for (int i = 0; i < this.ToDoTasks.Count; i++)
-        //    {
-        //        this.NewTaskDescription = this.NewTaskDescription + string.Format("{0}:{2}, {1}\n", i, this.ToDoTasks[i].Description, this.ToDoTasks[i].Order);
-        //    }
-
-        //}
         if (e.Action == Syncfusion.Maui.ListView.DragAction.Drop)
         {
-            //this.NewTaskDescription = string.Format("New Index {0}: {1}, Old Index {2}:{3}\n", e.NewIndex, this.ToDoTasks[e.NewIndex].Description, e.OldIndex, this.ToDoTasks[e.OldIndex].Description);
-            //for (int i = 0; i < this.ToDoTasks.Count; i++)
-            //{
-            //    this.NewTaskDescription = this.NewTaskDescription + string.Format("{0}:{2}, {1}\n", i, this.ToDoTasks[i].Description, this.ToDoTasks[i].Order);
-            //}
             if (e.NewIndex != e.OldIndex)
             {
                 var old = this.ToDoTasks[e.OldIndex];
@@ -255,15 +241,9 @@ public partial class ToDoTaskListViewModel : BaseViewModel
 
                 foreach (var task in toSave) 
                 {
-                    await databaseContext.UpdateItemAsync<ToDoTask>(task.ToToDoTask());
+                    await databaseContext.UpdateItemAsync<ToDoTask>(task.ToToDoTask()).ConfigureAwait(false);
                 }
             }
-
-            //this.NewTaskDescription = this.NewTaskDescription + "--- After ---\n";
-            //for (int i = 0; i < this.ToDoTasks.Count; i++)
-            //{
-            //    this.NewTaskDescription = this.NewTaskDescription + string.Format("{0}:{2}, {1}\n", i, this.ToDoTasks[i].Description, this.ToDoTasks[i].Order);
-            //}
         }
         else
         {

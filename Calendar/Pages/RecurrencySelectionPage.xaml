@@ -4,11 +4,17 @@
                 xmlns:pages="clr-namespace:Calendar.Pages"
                 xmlns:ListView="clr-namespace:Syncfusion.Maui.ListView;assembly=Syncfusion.Maui.ListView"             
                 xmlns:viewmodel="clr-namespace:Calendar.ViewModels"
+                xmlns:converters="clr-namespace:Calendar.Converters"
                 x:Class="Calendar.Pages.RecurrencySelectionPage"
                 x:TypeArguments="viewmodel:RecurrencySelectionViewModel"
-                x:DataType="viewmodel:RecurrencySelectionViewModel"
                 Shell.NavBarIsVisible="false">
-    <Grid RowDefinitions="Auto, Auto">
+    <pages:BasePage.Resources>
+        <ResourceDictionary>
+            <converters:SeparatorVisibilityConverter x:Key="separatorVisibilityConverter"/>
+        </ResourceDictionary>
+    </pages:BasePage.Resources>
+    <Grid RowDefinitions="Auto, Auto"
+          Background="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}">
         <Grid Grid.Row="0"
           ColumnDefinitions="33.33*, 33.33*, 33.33*"
           ColumnSpacing="8" 
@@ -21,10 +27,57 @@
                     HorizontalOptions="Center" Margin="12, 0, 12, 0"/>
         </Grid>
 
-        <ListView:SfListView Grid.Row="1" x:Name="collectionView"
-                ItemsSource="{Binding DaysOfWeek}"
+        <ListView:SfListView Grid.Row="1" x:Name="collectionView" Margin="12,12" MinimumHeightRequest="500"
+                AutoFitMode="Height"
+                ItemSpacing="0"
+                ItemsSource="{Binding DaysOfWeek, Mode=OneTime}"
                 SelectionMode="Multiple"
                 SelectedItems="{Binding SelectedDaysOfWeek}">
+            <ListView:SfListView.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"></RowDefinition>
+                            <RowDefinition Height="Auto"></RowDefinition>
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0" Margin="12,0" VerticalOptions="Center">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"></RowDefinition>
+                            </Grid.RowDefinitions>
+                            <Label Text="{Binding ., StringFormat='{0}'}" Margin="12,8,0,8" MinimumHeightRequest="24"
+                                    FontSize="{OnPlatform Default=16,WinUI=14}" FontFamily="Roboto-Regular" CharacterSpacing="0.5"
+                                    TextColor="{AppThemeBinding Light={StaticResource LightLabelText}, Dark={StaticResource DarkLabelText}}" 
+                                    VerticalOptions="Center"/>
+                        </Grid>
+                        <BoxView Grid.Row="1" HeightRequest="1" Margin="12,6,12,6" VerticalOptions="Center"
+                                 Color="{AppThemeBinding Light={StaticResource LightButtonBackground}, Dark={StaticResource DarkButtonBackground}}"
+                                IsVisible="{Binding ., Converter={StaticResource separatorVisibilityConverter}, ConverterParameter={x:Reference Name=collectionView}}"/>
+                    </Grid>
+                </DataTemplate>
+            </ListView:SfListView.ItemTemplate>
+            <ListView:SfListView.SelectedItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"></RowDefinition>
+                            <RowDefinition Height="Auto"></RowDefinition>
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0" Margin="12,0" VerticalOptions="Center"
+                              BackgroundColor="{AppThemeBinding Light={StaticResource LightTaskBackground}, Dark={StaticResource DarkTaskBackground}}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"></RowDefinition>
+                            </Grid.RowDefinitions>
+                            <Label Grid.Row="0" Text="{Binding .}" Margin="12,8,0,8" MinimumHeightRequest="24"
+                                    FontSize="{OnPlatform Default=16,WinUI=14}" FontFamily="Roboto-Regular" CharacterSpacing="0.5"
+                                    TextColor="{AppThemeBinding Light={StaticResource LightLabelText}, Dark={StaticResource DarkLabelText}}" 
+                                    VerticalOptions="Center"/>
+                        </Grid>
+                        <BoxView Grid.Row="1" HeightRequest="1" Margin="12,6,12,6" VerticalOptions="Center"                                 
+                                 Color="{AppThemeBinding Light={StaticResource LightButtonBackground}, Dark={StaticResource DarkButtonBackground}}"
+                                IsVisible="{Binding ., Converter={StaticResource separatorVisibilityConverter}, ConverterParameter={x:Reference Name=collectionView}}"/>
+                    </Grid>
+                </DataTemplate>
+            </ListView:SfListView.SelectedItemTemplate>
         </ListView:SfListView>
     
     </Grid>

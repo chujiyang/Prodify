@@ -7,13 +7,24 @@ using System.Collections.ObjectModel;
 
 namespace Calendar.ViewModels;
 
-[QueryProperty("IsEditingSeries", "IsEditingSeries")]
-[QueryProperty("DialogTitle", "DialogTitle")]
+public partial class SeriesViewModel : BaseViewModel
+{
+    [ObservableProperty]
+    bool isEditingSeries;
+
+    [ObservableProperty]
+    bool showEditSeries;
+}
+
+[QueryProperty("SeriesViewModel", "SeriesViewModel")]
 [QueryProperty("OperatingEvent", "OperatingEvent")]
 public partial class EventDetailViewModel : BaseViewModel
 {
     [ObservableProperty]
     EventViewModel operatingEvent;
+
+    [ObservableProperty]
+    SeriesViewModel seriesViewModel;
 
     /// <summary>
     /// Gets or sets the schedule min date time.    /// </summary>
@@ -35,19 +46,13 @@ public partial class EventDetailViewModel : BaseViewModel
     [ObservableProperty]
     bool isToOpen;
 
-    [ObservableProperty]
-    string dialogTitle;
-
-    [ObservableProperty]
-    bool isEditingSeries;
-
     private bool subscribedNotification = false;
     private DateTime minDateTime;
     private DateTime maxDateTime;
     private TimeSpan? oldFrom;
 
     public EventDetailViewModel()
-    {       
+    {
         minDateTime = DateTime.Now.RoundUpToQuarterHour();
         maxDateTime = minDateTime.AddMonths(3);
         minDisplayDateTime = new DateTime(minDateTime.Year, 1, 1);
@@ -55,7 +60,7 @@ public partial class EventDetailViewModel : BaseViewModel
         isDateOpen = false;
         isFromOpen = false;
         isToOpen = false;
-        dialogTitle = "Edit Task";
+        seriesViewModel = new SeriesViewModel();
 
         WeakReferenceMessenger.Default.Register<RecurrencyUpdateMessage>(this, (r, m) =>
         {
@@ -74,7 +79,7 @@ public partial class EventDetailViewModel : BaseViewModel
                     }
                 }
 
-                OperatingEvent.RecurrenceFrequencyId = (int)RecurrenceType.DayOfWeek;
+                OperatingEvent.RecurrenceFrequencyId = (recurrencyPattern != 0) ? (int)RecurrenceType.DayOfWeek : 0;
                 OperatingEvent.RecurrencePattern = recurrencyPattern;
             }
         });
@@ -116,13 +121,49 @@ public partial class EventDetailViewModel : BaseViewModel
     }
 
     [RelayCommand]
+    void EditingSeriesOrOccurance(string message)
+    {
+        SeriesViewModel.IsEditingSeries = message == "True";
+    }
+
+    [RelayCommand]
     async System.Threading.Tasks.Task Submit()
     {
         UnsubscribeNotification();
+
         OperatingEvent.EventName = OperatingEvent.EventName.Trim();
         OperatingEvent.Notes = OperatingEvent.Notes.Trim();
+        OperatingEvent.StartTime = OperatingEvent.Date.ChangeTime(OperatingEvent.From);
 
-        WeakReferenceMessenger.Default.Send(new EventInsertOrUpdateMessage(OperatingEvent) { IsEditingSeries = this.IsEditingSeries});
+        if (OperatingEvent.IsNewEvent)
+        {
+            OperatingEvent.EndTime = OperatingEvent.Date.ChangeTime(OperatingEvent.To);
+            
+            OperatingEvent.CreatedTime = DateTime.Now;
+            if (OperatingEvent.IsRecurring)
+            {
+                OperatingEvent.EndTime = OperatingEvent.EndTime.AddYears(1);
+            }
+        }
+        else if (!SeriesViewModel.IsEditingSeries || !OperatingEvent.IsRecurring)
+        {
+            OperatingEvent.EndTime = OperatingEvent.Date.ChangeTime(OperatingEvent.To);
+        }
+        else
+        {
+            OperatingEvent.EndTime = OperatingEvent.Date.ChangeTime(OperatingEvent.To).AddYears(1);
+        }
+
+        if (!OperatingEvent.IsNewEvent && !SeriesViewModel.IsEditingSeries)
+        {
+            OperatingEvent.RecurrenceFrequencyId = 0;
+            OperatingEvent.RecurrencePattern = 0;
+            OperatingEvent.RecurrenceInterval = 0;
+        }
+
+        OperatingEvent.Duration = OperatingEvent.CalculateDuration();
+
+        WeakReferenceMessenger.Default.Send(new EventInsertOrUpdateMessage(OperatingEvent) { IsEditingSeries = SeriesViewModel.IsEditingSeries});
 
         await Shell.Current.GoToAsync("..");
     }
@@ -204,20 +245,21 @@ public partial class EventDetailViewModel : BaseViewModel
     }
 
     private void EnsureFrom()
-    {       
-        if (oldFrom != null)
+    {
+        if (oldFrom == null)
         {
-            var oldTo = OperatingEvent.To;
-            OperatingEvent.To = OperatingEvent.From + (oldTo - oldFrom.Value);
-            oldFrom = OperatingEvent.From;
+            return;
         }
+        var oldTo = OperatingEvent.To;
+        OperatingEvent.To = OperatingEvent.From + (oldTo - oldFrom.Value);
+        oldFrom = OperatingEvent.From;
     }
 
     private void EnsureTo()
     {
-        if (OperatingEvent.Date + OperatingEvent.To < OperatingEvent.Date + OperatingEvent.From + TimeSpan.FromMinutes(15))
+        if (OperatingEvent.Date + OperatingEvent.To < OperatingEvent.Date + OperatingEvent.From + TimeSpan.FromMinutes(5))
         {
-            OperatingEvent.To = OperatingEvent.From + TimeSpan.FromMinutes(15);
+            OperatingEvent.To = OperatingEvent.From + TimeSpan.FromMinutes(5);
         }
     }
 }

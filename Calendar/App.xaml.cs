@@ -16,36 +16,36 @@ public partial class App : Application
 
         Application.Current.RequestedThemeChanged += (s, a) =>
         {
-            UpdateTheme();
+            UpdateTheme(a.RequestedTheme);
         };
 
         InitializeComponent();
-        UpdateTheme();
+        UpdateTheme(Application.Current.UserAppTheme);
 
         MainPage = new AppShell();
 	}
 
-    private void UpdateTheme()
+    private void UpdateTheme(AppTheme requestedTheme)
     {
         ICollection<ResourceDictionary> mergedDictionaries = Application.Current.Resources.MergedDictionaries;
 
         var dictionary = mergedDictionaries.FirstOrDefault();
         if (dictionary != null)
         {
-            if (Application.Current.UserAppTheme == AppTheme.Dark)
+            if (requestedTheme == AppTheme.Dark)
             {
                 Object pickerBackground;
                 if (dictionary.TryGetValue("DarkPickerBackground", out pickerBackground))
                 {
-                    dictionary.Add("SfPopupNormalMessageBackground", pickerBackground);
+                    dictionary["SfPopupNormalMessageBackground"] = pickerBackground;
                 }
             }
-            else
+            else if (requestedTheme == AppTheme.Light)
             {
                 Object pickerBackground;
                 if (dictionary.TryGetValue("LightPickerBackground", out pickerBackground))
                 {
-                    dictionary.Add("SfPopupNormalMessageBackground", pickerBackground);
+                    dictionary["SfPopupNormalMessageBackground" ] = pickerBackground;
                 }
             }
         }

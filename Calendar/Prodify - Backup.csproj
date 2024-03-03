@@ -45,8 +45,8 @@
 	  <CodesignKey>iPhone Distribution</CodesignKey>
 	  <CodesignProvision>hongyunyang-prodify-distribute</CodesignProvision>
 	</PropertyGroup>
-
 -->
+
 <!-- Override device -->
 	<PropertyGroup Condition="'$(TargetFramework)'=='net8.0-ios'">
 	  <ProvisioningType>manual</ProvisioningType>
@@ -74,6 +74,7 @@
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
 
+  
 	<ItemGroup>
 	  <Compile Remove="Platforms\iOS\Renders\**" />
 	  <EmbeddedResource Remove="Platforms\iOS\Renders\**" />
@@ -91,6 +92,17 @@
 	  <Compile Remove="ViewModels\TodoListViewModel.cs" />
 	  <Compile Remove="Views\KeyboardView.cs" />
 	  <Compile Remove="Views\ToDoListView.xaml.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <MauiXaml Remove="Pages\EventEditPage.xaml" />
+	  <MauiXaml Remove="Views\TodoListView.xaml" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <BundleResource Include="Platforms\iOS\Resources\clock.aiff" Link="Resources\clock.aiff">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </BundleResource>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -131,6 +143,10 @@
 	  <MauiXaml Update="Views\ToDoTaskListView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)'=='net8.0-ios'">
+    	  <BundleResource Include="Platforms\iOS\Resources\clock.aiff" Link="Resources\clock.aiff" />
 	</ItemGroup>
 
 </Project>

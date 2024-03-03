@@ -7,34 +7,36 @@ public partial class ToDoTaskListView : ContentView
     public ToDoTaskListView()
 	{
         InitializeComponent();
+        this.Loaded += ToDoTaskListView_Loaded;
+        this.Unloaded += ToDoTaskListView_Unloaded;
     }
 
-    public void OnAppearing()
+    private async void ToDoTaskListView_Unloaded(object sender, EventArgs e)
+    {
+        var toDoListViewModel = this.BindingContext as ToDoTaskListViewModel;
+        if (toDoListViewModel != null)
+        {
+            await toDoListViewModel.EnsureOrderAsync().ConfigureAwait(false);
+        }
+    }
+
+    private async void ToDoTaskListView_Loaded(object sender, EventArgs e)
     {
         var toDoListViewModel = this.BindingContext as ToDoTaskListViewModel;
         if (toDoListViewModel != null)
         {
             toDoListViewModel.ListView = new ListViewAdaptor(this.listView);
 
-            toDoListViewModel.LoadToDoTasksAsync().ConfigureAwait(false);
+            await toDoListViewModel.LoadToDoTasksAsync().ConfigureAwait(false);
         }
     }
 
-    public void OnDisappearing()
+    private async void listView_ItemDragging(object sender, Syncfusion.Maui.ListView.ItemDraggingEventArgs e)
     {
         var toDoListViewModel = this.BindingContext as ToDoTaskListViewModel;
         if (toDoListViewModel != null)
         {
-            toDoListViewModel.EnsureOrderAsync().ConfigureAwait(false);
-        }
-    }
-
-    private void listView_ItemDragging(object sender, Syncfusion.Maui.ListView.ItemDraggingEventArgs e)
-    {
-        var toDoListViewModel = this.BindingContext as ToDoTaskListViewModel;
-        if (toDoListViewModel != null)
-        {
-            toDoListViewModel.OnItemDragging(e);
+            await toDoListViewModel.OnItemDraggingAsync(e).ConfigureAwait(false);
         }
     }
 

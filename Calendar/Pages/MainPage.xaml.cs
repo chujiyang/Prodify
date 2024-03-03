@@ -24,21 +24,5 @@ public partial class MainPage : BasePage<MainViewModel>
     {
         AppPreferences.VisibleTab = (int)e.NewIndex;
     }
-
-    protected override void OnAppearing()
-    {
-        base.OnAppearing();
-
-        (MyEventListView as Calendar.Views.EventListView)?.OnAppearing();
-        (MyTodoListView as Calendar.Views.ToDoTaskListView)?.OnAppearing();
-    }
-
-    protected override void OnDisappearing()
-    {
-        base.OnDisappearing();
-
-        (MyEventListView as Calendar.Views.EventListView)?.OnDisappearing();
-        (MyTodoListView as Calendar.Views.ToDoTaskListView)?.OnDisappearing();
-    }
 }
 
